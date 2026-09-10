@@ -214,6 +214,21 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <button class="back" onclick="go('shop')">← SHOP</button><h2>CART</h2><div class="small">SELECTED ITEMS</div><div id="cart-items"></div><div class="section"><div class="row"><span>SUBTOTAL</span><strong id="cart-total">¥0</strong></div></div><button id="checkout-btn" style="width:100%;margin-top:18px" onclick="go('checkout')">CHECKOUT →</button></section>
 <section id="checkout" class="screen"><button class="back" onclick="go('cart')">← CART</button><h2>CHECKOUT</h2><div class="small">ORDER SUMMARY</div><div id="checkout-summary" class="section"></div><div class="section"><h2>CONTACT</h2><input id="checkout-name" placeholder="NAME"><input id="checkout-email" type="email" placeholder="EMAIL"></div><div class="section"><h2>SHIPPING ADDRESS</h2><input id="checkout-postal" inputmode="numeric" placeholder="POSTAL CODE"><input id="checkout-address" placeholder="ADDRESS"></div><button id="place-order-btn" style="width:100%;margin-top:18px" onclick="placeOrder()">PAYMENT →</button><div id="checkout-message" class="small" style="margin-top:12px"></div></section>
 <section id="order-complete" class="screen"><h2>ORDER COMPLETE</h2><div class="order-complete"><div class="mark">✓</div><div class="small">THANK YOU FOR YOUR ORDER.</div><div class="order-number" id="complete-order-number">X042-00000000-0000</div><div class="small">ORDER NUMBER</div><div class="row" style="margin-top:20px"><span>TOTAL</span><strong id="complete-total">¥0</strong></div><div class="small" id="complete-note" style="margin-top:18px">PAYMENT STATUS IS CONFIRMED BY STRIPE WEBHOOK.</div></div><div class="complete-actions"><button onclick="go('shop')">CONTINUE SHOPPING →</button><button onclick="go('history')">VIEW ORDER HISTORY →</button><button onclick="go('home')" style="background:#222;color:#eee;border:1px solid #555">BACK TO HOME →</button></div></section>
+<section id="payment-result" class="screen">
+<h2 id="payment-result-title">PAYMENT RESULT</h2>
+<div class="order-complete">
+<div class="mark" id="payment-result-mark">✓</div>
+<div class="small" id="payment-result-message">PROCESSING PAYMENT RESULT.</div>
+<div class="order-number" id="payment-result-order">—</div>
+<div class="small">ORDER NUMBER</div>
+<div class="small" id="payment-result-note" style="margin-top:18px">PLEASE WAIT.</div>
+</div>
+<div class="complete-actions">
+<button id="payment-result-primary" onclick="go('history')">VIEW ORDER HISTORY →</button>
+<button onclick="go('shop')">CONTINUE SHOPPING →</button>
+<button onclick="go('home')" style="background:#222;color:#eee;border:1px solid #555">BACK TO HOME →</button>
+</div>
+</section>
 </main>
 
 <nav class="nav">
@@ -1018,6 +1033,54 @@ function openProfile(){
   loadMemberProfile();
 }
 
+
+function handlePaymentReturn(){
+  const params = new URLSearchParams(location.search);
+  const payment = (params.get('payment') || '').toLowerCase();
+  const order = params.get('order') || '';
+
+  if(payment !== 'success' && payment !== 'cancel') return false;
+
+  const screen = document.getElementById('payment-result');
+  if(!screen) return false;
+
+  const title = document.getElementById('payment-result-title');
+  const mark = document.getElementById('payment-result-mark');
+  const message = document.getElementById('payment-result-message');
+  const orderEl = document.getElementById('payment-result-order');
+  const note = document.getElementById('payment-result-note');
+  const primary = document.getElementById('payment-result-primary');
+
+  if(orderEl) orderEl.textContent = order || 'ORDER NUMBER UNAVAILABLE';
+
+  if(payment === 'success'){
+    if(title) title.textContent = 'PAYMENT COMPLETE';
+    if(mark) mark.textContent = '✓';
+    if(message) message.textContent = 'THANK YOU. YOUR PAYMENT WAS RECEIVED.';
+    if(note) note.textContent = 'ORDER STATUS IS CONFIRMED BY STRIPE WEBHOOK.';
+    if(primary) primary.textContent = 'VIEW ORDER HISTORY →';
+
+    // Payment has completed at Stripe. Clear the local cart so the paid
+    // order is not accidentally submitted again from this device.
+    cart = [];
+    saveCart();
+    renderCart();
+  }else{
+    if(title) title.textContent = 'PAYMENT CANCELLED';
+    if(mark) mark.textContent = '×';
+    if(message) message.textContent = 'PAYMENT WAS CANCELLED.';
+    if(note) note.textContent = 'YOUR CART HAS BEEN KEPT. YOU CAN TRY CHECKOUT AGAIN.';
+    if(primary) primary.textContent = 'RETURN TO CART →';
+    if(primary) primary.onclick = () => go('cart');
+  }
+
+  document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
+  screen.classList.add('active');
+  document.querySelectorAll('.nav a,.nav button').forEach(x => x.classList.remove('active'));
+  window.scrollTo(0,0);
+  return true;
+}
+
 function showScreenFromHash(){
  const raw=location.hash.replace('#','') || 'home';
  let id=raw;
@@ -1059,8 +1122,10 @@ function go(id){
 }
 
 // Restore initial cart state on load
+const paymentReturnHandled = handlePaymentReturn();
 const initialHash=location.hash.replace('#','');
-if(initialHash && document.getElementById(initialHash)) showScreenFromHash();
+if(!paymentReturnHandled && initialHash && document.getElementById(initialHash)) showScreenFromHash();
+if(!paymentReturnHandled) showScreenFromHash();
 renderCart();
 renderHistory();
 renderMemberAuth();
