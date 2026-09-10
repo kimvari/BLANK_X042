@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BLANK_X042 // LAB / v44</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif}
+.app{max-width:430px;margin:auto;min-height:100vh;background:#171717}
+header{padding:24px 20px 14px;border-bottom:1px solid #444;position:sticky;top:0;background:#171717;z-index:3}
+.logo{letter-spacing:7px;font-size:15px}.sub{font-size:9px;letter-spacing:4px;color:#aaa;margin-top:5px}
+main{padding:16px 16px 86px}.hero{min-height:470px;padding:24px;background:linear-gradient(145deg,#777,#222 55%,#090909);display:flex;flex-direction:column;justify-content:flex-end;margin-bottom:14px}
+.kicker,.code{font-size:10px;letter-spacing:3px;color:#ccc}.hero h1{font-size:42px;letter-spacing:4px;margin:8px 0}.hero p{font-size:12px;letter-spacing:2px}
+button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;letter-spacing:2px;cursor:pointer;touch-action:manipulation}.card{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.section{border-top:1px solid #555;padding:16px 0;margin-top:14px}.section h2{font-size:13px;letter-spacing:3px;margin:0 0 12px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}.card{background:#242424;padding:8px}.product-link{color:#eee;display:block;min-height:250px;position:relative;z-index:1}.pic{height:150px;background:linear-gradient(135deg,#aaa,#333);margin-bottom:9px;overflow:hidden;position:relative}.product-image{width:100%;height:100%;display:block;object-fit:cover;background:#ddd}.product-image-detail{width:100%;height:100%;display:block;object-fit:contain;background:#222}.cart-thumb{width:64px;height:64px;object-fit:cover;background:#ddd;display:block;border:1px solid #555}.image-fallback{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:9px;letter-spacing:2px;color:#666;background:linear-gradient(135deg,#d8d8d8,#555)}.name{font-size:11px;letter-spacing:2px}.price{font-size:11px;margin-top:5px;color:#bbb}.choice{position:relative;display:block}.choice input{position:absolute;opacity:0;width:1px;height:1px}.choice label{display:flex;align-items:center;justify-content:center;min-height:52px;background:#eee;color:#111;font-weight:bold;letter-spacing:2px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.choice input:checked+label{background:#111;color:#fff;outline:2px solid #eee}.choice input:disabled+label{background:#2a2a2a;color:#666;outline:1px dashed #555;cursor:not-allowed}.choice.sold-out label{position:relative}.choice.sold-out label::after{content:"SOLD OUT";position:absolute;bottom:5px;right:7px;font-size:7px;letter-spacing:1px;color:#888}.product-form{margin:0}
+.screen{display:none}.screen.active{display:block}.screen:target{display:block!important}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);display:grid;grid-template-columns:repeat(6,1fr);background:#111;border-top:1px solid #444;z-index:5}
+.nav button,.nav a{padding:11px 2px;background:#111;color:#999;font-size:8px;letter-spacing:1px;text-align:center;text-decoration:none;font-weight:bold}.nav button.active,.nav a.active{color:#fff}
+.row{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #444;padding:16px 0}
+.member{border:1px solid #777;padding:20px;background:linear-gradient(135deg,#333,#111);margin-top:15px}.member .id{font-size:21px;letter-spacing:4px;margin:18px 0}
+.vote{border:1px solid #555;padding:14px;margin:8px 0}.lab-options{display:grid;gap:8px;margin-top:12px}.lab-option{width:100%;display:flex;justify-content:space-between;align-items:center;background:#222;color:#eee;border:1px solid #555;text-align:left}.lab-option.selected{background:#eee;color:#111;border-color:#eee}.lab-option:disabled{opacity:1}.bar{height:5px;background:#555;margin:8px 0}.bar span{display:block;height:100%;background:#eee}
+.lock{border:1px solid #444;padding:18px;margin:10px 0;background:#202020}
+.back{background:none;color:#eee;padding:0;margin-bottom:18px}.history-card{border:1px solid #555;padding:16px;margin:10px 0;background:#1d1d1d}.history-meta{display:flex;justify-content:space-between;gap:12px}.status{font-size:9px;letter-spacing:2px;color:#aaa}.empty-note{border:1px dashed #555;padding:22px;text-align:center;color:#999;font-size:10px;letter-spacing:1px}
+.small{font-size:10px;color:#aaa;letter-spacing:1px}.order-complete{border:1px solid #555;padding:28px 18px;margin-top:18px;text-align:center}.order-complete .mark{font-size:34px;letter-spacing:3px;margin-bottom:18px}.order-number{font-size:18px;letter-spacing:3px;margin:14px 0}.complete-actions{display:grid;gap:10px;margin-top:22px}
+
+
+/* v35 / MEMBER AUTH */
+.member-auth{border:1px solid #555;padding:18px;margin-top:15px;background:#1b1b1b}
+.member-auth input{margin:7px 0}
+.auth-actions{display:grid;gap:8px;margin-top:10px}
+.auth-actions button{width:100%}
+
+/* v34 / purchase history */
+.history-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
+.history-list{display:grid;gap:12px;margin-top:16px}
+.history-card{border:1px solid #555;padding:16px}
+.history-meta{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.status{font-size:9px;letter-spacing:1px;border:1px solid #777;padding:4px 7px}
+.history-empty{border:1px dashed #555;padding:24px 16px;text-align:center;margin-top:16px}
+.profile-card{border:1px solid #555;padding:18px;margin-top:16px;background:#1b1b1b}.collection-card{border:1px solid #555;padding:18px;margin-top:16px;background:#1b1b1b}.collection-card .code{margin-bottom:8px}.profile-grid{display:grid;gap:0}.profile-row{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid #444;padding:14px 0;font-size:11px}.profile-row:last-child{border-bottom:0}.profile-value{text-align:right;word-break:break-all;color:#eee}.profile-status{margin-top:14px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">BLANK_X042</div><div class="sub">// LAB</div></header>
+
+<main>
+<section id="home" class="screen active">
+<div class="hero"><div class="kicker">CURRENT DROP</div><h1>DROP_004</h1><p>2026.10.12 / 21:00 JST</p><button onclick="go('shop')">VIEW DROP →</button></div>
+<div class="section"><h2>LAB // NOW</h2><div class="row"><span>PROTOTYPE_004</span><span>VOTING OPEN →</span></div></div>
+<div class="section"><h2>NEWS</h2><div class="row"><span>DROP_004 INFORMATION</span><span class="small">09.XX</span></div></div>
+</section>
+
+<section id="shop" class="screen">
+<h2>SHOP</h2><div class="small">ALL / TOPS / BOTTOMS / OUTER / ACCESSORIES</div>
+<div id="catalog-status" class="small" style="margin-top:14px">CATALOG / LOCAL PROTOTYPE DATA</div><div class="cards" style="margin-top:14px" id="shop-products">
+</div></section>
+
+<section id="product" class="screen">
+<button class="back" onclick="go('shop')">← SHOP</button><div class="pic" style="height:390px" id="product-image-box"><div class="image-fallback">X042 / IMAGE PENDING</div></div>
+<div class="code" id="product-code">X042-003</div><h2 id="product-name" style="font-size:22px;letter-spacing:3px">UNKNOWN TEE</h2><p id="product-price">¥8,800</p><div class="small" id="product-meta">CATEGORY / TOPS · TYPE / TEE · STATUS / ACTIVE</div>
+<form id="product-form" class="product-form"><div class="section"><h2>COLOR</h2><div class="cards" id="product-colors"></div></div>
+<div class="section"><h2>SIZE</h2><div class="cards" id="product-sizes"></div><div class="small" style="margin-top:10px" id="product-stock">IN STOCK / S 8 · M 12 · L 7 · XL 3</div></div></form>
+<div class="section"><h2>PRODUCT DATA</h2><div class="row"><span>PRODUCT ID</span><span id="data-id">X042-003</span></div><div class="row"><span>CATEGORY</span><span id="data-category">TOPS</span></div><div class="row"><span>TYPE</span><span id="data-type">TEE</span></div><div class="row"><span>COLORS</span><span id="data-colors">BLACK / GRAY</span></div><div class="row"><span>PRICE</span><span id="data-price">¥8,800</span></div></div><button id="add-cart" style="width:100%;margin-top:18px" onclick="addToCart()">ADD TO CART →</button>
+</section>
+
+<section id="lab" class="screen">
+<h2>LAB</h2><div class="small">PROTOTYPE / OPEN CALL / MEMBER VOTE</div>
+<div class="section">
+  <div class="code" id="lab-prototype-code">PROTOTYPE_004</div>
+  <h2 id="lab-prototype-title" style="font-size:22px">NEXT TEE</h2>
+  <p id="lab-prototype-description">次のBLANK_X042 TEEを決める。</p>
+  <div id="lab-vote-list"></div>
+  <div class="section" style="margin-top:18px">
+    <div class="small">LIVE RESULTS / MEMBER VOTES</div>
+    <div id="lab-result-list"></div>
+    <div id="lab-prototype-state" class="section" style="margin-top:18px;padding:20px;border:1px solid rgba(255,255,255,.24)">
+      <div class="small">CURRENT PROTOTYPE STATE</div>
+      <div id="lab-prototype-state-title" style="font-size:22px;font-weight:700;margin-top:8px">PROTOTYPE_004 / NEXT TEE</div>
+      <div id="lab-prototype-state-summary" class="small" style="margin-top:12px">COLOR — / GRAPHIC — / FIT —</div>
+    </div>
+  </div>
+  <div class="small" id="lab-message" style="margin-top:14px">LOADING LAB…</div>
+</div>
+</section>
+
+<section id="access" class="screen">
+<h2>ACCESS</h2><div class="small">ACCESS LEVEL 02 / MEMBER ONLY</div>
+<div id="access-status" class="small" style="margin-top:12px">CHECKING MEMBER ACCESS…</div>
+<div id="access-list" style="margin-top:16px"></div>
+</section>
+
+<section id="access-detail" class="screen">
+<button class="back" onclick="go('access')">← ACCESS</button>
+<div class="code" id="access-detail-code">DEVELOPMENT FILE_003</div>
+<h2 id="access-detail-title">PROCESS</h2>
+<div class="small" id="access-detail-label">MEMBER ONLY CONTENT</div>
+<div class="section" style="margin-top:18px">
+<div id="access-detail-body" style="line-height:1.9"></div>
+</div>
+<div class="small" id="access-detail-message" style="margin-top:14px"></div>
+</section>
+
+<section id="member" class="screen">
+<h2>MEMBER</h2>
+<div id="member-auth-card" class="member-auth">
+  <div class="small" id="auth-state-label">MEMBER ACCESS</div>
+  <div id="member-auth-form">
+    <input id="auth-email" type="email" autocomplete="email" placeholder="EMAIL">
+    <input id="auth-password" type="password" autocomplete="current-password" placeholder="PASSWORD">
+    <div class="auth-actions">
+      <button onclick="signInMember()">SIGN IN →</button>
+      <button onclick="signUpMember()" style="background:#222;color:#eee;border:1px solid #555">CREATE ACCOUNT</button>
+    </div>
+    <div id="auth-message" class="small" style="margin-top:12px;line-height:1.7"></div>
+  </div>
+  <div id="member-authenticated" style="display:none">
+    <div class="small">SIGNED IN AS</div>
+    <div id="member-email" style="font-size:14px;margin:8px 0 16px;word-break:break-all"></div>
+    <div class="small">ACCOUNT ID</div>
+    <div id="member-user-id" class="code" style="margin-top:7px;word-break:break-all"></div>
+    <button onclick="signOutMember()" style="width:100%;margin-top:18px;background:#222;color:#eee;border:1px solid #555">SIGN OUT</button>
+  </div>
+</div>
+<div class="member"><div class="small">MEMBER</div><div class="id" id="member-display-id">X042-GUEST</div><div class="small">ACCESS LEVEL</div><div style="font-size:28px" id="member-access-level">GUEST</div><div class="row"><span>X042 SCORE<br><b id="member-score">—</b></span><span>POINT<br><b id="member-points">—</b></span></div></div>
+<div class="row" onclick="openProfile()" style="cursor:pointer">PROFILE <span>→</span></div><div class="row" onclick="go('history')" style="cursor:pointer">PURCHASE HISTORY <span>→</span></div><a class="row" href="#coupons" onclick="setTimeout(loadCoupons,0)" style="display:flex;cursor:pointer;text-decoration:none;color:inherit">COUPONS <span>→</span></a><div class="row" onclick="go('collection')" style="cursor:pointer">MY COLLECTION <span>→</span></div><div class="row" onclick="go('settings')" style="cursor:pointer">SETTINGS <span>→</span></div>
+</section>
+
+<section id="coupons" class="screen">
+<button class="back" onclick="go('member')">← MEMBER</button>
+<h2>COUPONS</h2>
+<div class="small">MEMBER COUPON / AVAILABLE ACCESS</div>
+<div class="history-toolbar"><span class="small" id="coupon-count">0 COUPONS</span><button onclick="loadCoupons()" style="padding:8px 10px;font-size:9px">REFRESH</button></div>
+<div id="coupon-list" class="history-list"></div>
+<div id="coupon-empty" class="history-empty">SIGN IN TO VIEW YOUR COUPONS.</div>
+<div id="coupon-message" class="small" style="margin-top:14px;line-height:1.7"></div>
+</section>
+<section id="collection" class="screen">
+<button class="back" onclick="go('member')">← MEMBER</button>
+<h2>MY COLLECTION</h2>
+<div class="small">MEMBER COLLECTION / OWNED ITEMS</div>
+<div class="row" style="margin-top:18px"><span id="collection-count">0 ITEMS</span><button onclick="loadCollection()">REFRESH</button></div>
+<div id="collection-list" style="margin-top:14px"></div>
+<div class="small" id="collection-message" style="margin-top:14px">LOADING COLLECTION…</div>
+</section>
+
+<section id="settings" class="screen">
+<button class="back" onclick="go('member')">← MEMBER</button>
+<h2>SETTINGS</h2>
+<div class="small">ACCOUNT / PREFERENCES / APP</div>
+
+<div class="section">
+<h2>ACCOUNT</h2>
+<div class="row"><span>STATUS</span><span id="settings-account-status">SIGNED OUT</span></div>
+<div class="row"><span>EMAIL</span><span id="settings-account-email" style="max-width:58%;text-align:right;word-break:break-all">—</span></div>
+<div class="row"><span>ACCOUNT ID</span><span id="settings-account-id" class="code" style="max-width:58%;text-align:right;word-break:break-all">—</span></div>
+</div>
+
+<div class="section">
+<h2>PREFERENCES</h2>
+<div class="row" style="cursor:pointer" onclick="toggleSetting('notifications')">
+<span>NOTIFICATIONS</span><span id="setting-notifications">ON</span>
+</div>
+<div class="small" style="margin-top:8px;line-height:1.7">LOCAL APP PREFERENCE / SAVED ON THIS DEVICE.</div>
+</div>
+
+<div class="section">
+<h2>PRIVACY</h2>
+<div class="row"><span>ACCOUNT DATA</span><span>MEMBER ONLY</span></div>
+<div class="small" style="margin-top:8px;line-height:1.7">YOUR PROFILE, ORDERS, COUPONS AND COLLECTION DATA ARE REQUESTED FOR THE SIGNED-IN ACCOUNT.</div>
+</div>
+
+<div class="section">
+<h2>APP INFORMATION</h2>
+<div class="row"><span>APP</span><span>BLANK_X042 // LAB</span></div>
+<div class="row"><span>BUILD</span><span>v50</span></div>
+</div>
+
+<div class="section">
+<button onclick="refreshSettings()" style="width:100%">REFRESH ACCOUNT STATE →</button>
+<button onclick="signOutMember()" style="width:100%;margin-top:10px;background:#222;color:#eee;border:1px solid #555">SIGN OUT →</button>
+<div id="settings-message" class="small" style="margin-top:12px;line-height:1.7"></div>
+</div>
+</section>
+
+<section id="profile" class="screen">
+<button class="back" onclick="go('member')">← MEMBER</button>
+<h2>PROFILE</h2>
+<div class="small">MEMBER ACCOUNT / PROFILE DATA</div>
+<div id="profile-card" class="profile-card">
+  <div class="profile-grid">
+    <div class="profile-row"><span>DISPLAY NAME</span><span class="profile-value" id="profile-display-name">—</span></div>
+    <div class="profile-row"><span>EMAIL</span><span class="profile-value" id="profile-email">—</span></div>
+    <div class="profile-row"><span>MEMBER ID</span><span class="profile-value code" id="profile-member-id">—</span></div>
+    <div class="profile-row"><span>ACCESS LEVEL</span><span class="profile-value" id="profile-access-level">—</span></div>
+    <div class="profile-row"><span>X042 SCORE</span><span class="profile-value" id="profile-score">—</span></div>
+    <div class="profile-row"><span>POINT</span><span class="profile-value" id="profile-points">—</span></div>
+    <div class="profile-row"><span>ACCOUNT ID</span><span class="profile-value code" id="profile-user-id">—</span></div>
+  </div>
+</div>
+<div id="profile-message" class="small profile-status">SIGN IN TO VIEW YOUR PROFILE.</div>
+</section>
+<section id="history" class="screen">
+<button class="back" onclick="go('member')">← MEMBER</button>
+<h2>PURCHASE HISTORY</h2>
+<div class="small">ORDER RECORD / ACCOUNT</div>
+<div class="history-toolbar"><span class="small" id="history-count">0 ORDERS</span><button onclick="loadAccountHistory()" style="padding:8px 10px;font-size:9px">REFRESH</button></div>
+<div id="history-list" class="history-list"></div>
+<div id="history-empty" class="history-empty">SIGN IN TO VIEW YOUR ORDER HISTORY.</div>
+<div id="history-message" class="small" style="margin-top:14px;line-height:1.7"></div>
+</section>
+<section id="cart" class="screen">
+<button class="back" onclick="go('shop')">← SHOP</button><h2>CART</h2><div class="small">SELECTED ITEMS</div><div id="cart-items"></div><div class="section"><div class="row"><span>SUBTOTAL</span><strong id="cart-total">¥0</strong></div></div><button id="checkout-btn" style="width:100%;margin-top:18px" onclick="go('checkout')">CHECKOUT →</button></section>
+<section id="checkout" class="screen"><button class="back" onclick="go('cart')">← CART</button><h2>CHECKOUT</h2><div class="small">ORDER SUMMARY</div><div id="checkout-summary" class="section"></div><div class="section"><h2>CONTACT</h2><input id="checkout-name" placeholder="NAME"><input id="checkout-email" type="email" placeholder="EMAIL"></div><div class="section"><h2>SHIPPING ADDRESS</h2><input id="checkout-postal" inputmode="numeric" placeholder="POSTAL CODE"><input id="checkout-address" placeholder="ADDRESS"></div><button id="place-order-btn" style="width:100%;margin-top:18px" onclick="placeOrder()">PAYMENT →</button><div id="checkout-message" class="small" style="margin-top:12px"></div></section>
+<section id="order-complete" class="screen"><h2>ORDER COMPLETE</h2><div class="order-complete"><div class="mark">✓</div><div class="small">THANK YOU FOR YOUR ORDER.</div><div class="order-number" id="complete-order-number">X042-00000000-0000</div><div class="small">ORDER NUMBER</div><div class="row" style="margin-top:20px"><span>TOTAL</span><strong id="complete-total">¥0</strong></div><div class="small" id="complete-note" style="margin-top:18px">PAYMENT STATUS IS CONFIRMED BY STRIPE WEBHOOK.</div></div><div class="complete-actions"><button onclick="go('shop')">CONTINUE SHOPPING →</button><button onclick="go('history')">VIEW ORDER HISTORY →</button><button onclick="go('home')" style="background:#222;color:#eee;border:1px solid #555">BACK TO HOME →</button></div></section>
+<section id="payment-result" class="screen">
+<h2 id="payment-result-title">PAYMENT RESULT</h2>
+<div class="order-complete">
+<div class="mark" id="payment-result-mark">✓</div>
+<div class="small" id="payment-result-message">PROCESSING PAYMENT RESULT.</div>
+<div class="order-number" id="payment-result-order">—</div>
+<div class="small">ORDER NUMBER</div>
+<div class="small" id="payment-result-note" style="margin-top:18px">PLEASE WAIT.</div>
+</div>
+<div class="complete-actions">
+<button id="payment-result-primary" onclick="go('history')">VIEW ORDER HISTORY →</button>
+<button onclick="go('shop')">CONTINUE SHOPPING →</button>
+<button onclick="go('home')" style="background:#222;color:#eee;border:1px solid #555">BACK TO HOME →</button>
+</div>
+</section>
+</main>
+
+<nav class="nav">
+<a href="#home" onclick="go('home');return true" id="n-home" class="active">HOME</a>
+<a href="#shop" onclick="go('shop');return true" id="n-shop">SHOP</a><a href="#cart" onclick="go('cart');return true" id="n-cart">CART <span id="cart-count">0</span></a>
+<a href="#lab" onclick="go('lab');return true" id="n-lab">LAB</a>
+<a href="#access" onclick="go('access');return true" id="n-access">ACCESS</a>
+<a href="#member" onclick="go('member');return true" id="n-member">MEMBER</a>
+</nav>
+</div>
+<script>
+// BLANK_X042 APP BUILD v50 / UNIFIED NAVIGATION + STRIPE CHECKOUT + LIVE SUPABASETORY
+// Supabase connection is intentionally left as placeholders until production credentials are supplied.
+const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
+// v10: production order writes are designed to go through a server-side Edge Function.
+// Never put a Supabase service_role key in this HTML.
+
+const products = {
+ 'X042-003': {name:'UNKNOWN TEE', price:8800, category:'TOPS', type:'TEE', colors:['BLACK','GRAY'], sizes:['S','M','L','XL'], stock:'BLACK S 4 · M 6 · L 4 · XL 2 / GRAY S 4 · M 6 · L 3 · XL 1', stockByVariant:{}, status:'ACTIVE'},
+ 'X042-004': {name:'LAB HOODIE', price:14800, category:'TOPS', type:'HOODIE', colors:['BLACK'], sizes:['S','M','L','XL'], stock:'BLACK S 4 · M 9 · L 6 · XL 2', stockByVariant:{}, status:'ACTIVE'},
+ 'X042-005': {name:'CONCRETE PANTS', price:16800, category:'BOTTOMS', type:'PANTS', colors:['GRAY'], sizes:['S','M','L','XL'], stock:'GRAY S 5 · M 8 · L 5 · XL 2', stockByVariant:{}, status:'ACTIVE'},
+ 'X042-006': {name:'SYSTEM CAP', price:6600, category:'ACCESSORIES', type:'CAP', colors:['BLACK'], sizes:['ONE SIZE'], stock:'BLACK ONE SIZE 18', stockByVariant:{}, status:'ACTIVE'}
+};
+
+function normalizeImageUrl(value){
+ if(!value)return "";
+ if(Array.isArray(value))return value.map(normalizeImageUrl).find(Boolean)||"";
+ if(typeof value==="object")return normalizeImageUrl(value.url||value.publicUrl||value.path||value.src);
+ const raw=String(value).trim();
+ if(!raw)return "";
+ if(raw.startsWith("[")||raw.startsWith("{")){try{return normalizeImageUrl(JSON.parse(raw));}catch(e){}}
+ return raw;
+}
+function imageMarkup(product, detail=false){
+ const url=normalizeImageUrl(product&&product.image_url);
+ const cls=detail?"product-image-detail":"product-image";
+ const fallback=detail?"X042 / IMAGE PENDING":"X042";
+ if(!url)return `<div class="image-fallback">${fallback}</div>`;
+ return `<img class="${cls}" src="${escapeHtml(url)}" alt="${escapeHtml(product?.name||"BLANK_X042 product")}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'image-fallback',textContent:'X042 / IMAGE ERROR'}))">`;
+}
+function escapeHtml(value){return String(value??"").replace(/[&<>\"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':'&quot;',"'":"&#39;"}[ch]));}
+
+function renderShop(){
+ const box=document.getElementById('shop-products');
+ if(!box)return;
+ const list=Object.entries(products).filter(([id,p])=>p.status!=='ARCHIVED');
+ box.innerHTML=list.map(([id,p])=>`<a class="card product-link" href="#product/${encodeURIComponent(id)}" data-product-id="${id}" role="button" style="display:block;width:100%;text-align:left;background:#242424;color:#eee;padding:8px;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent"><div class="pic">${imageMarkup(p)}</div><div class="name">${id}<br>${p.name}</div><div class="small">${p.category} / ${p.type||'PRODUCT'} / ${p.colors.join(', ')}</div><div class="price">¥${Number(p.price).toLocaleString()}</div></a>`).join('');
+}
+
+async function loadProductsFromSupabase(){
+ const status=document.getElementById('catalog-status');
+ if(!SUPABASE_CONFIG.url || !SUPABASE_CONFIG.anonKey){
+   if(status)status.textContent='CATALOG / LOCAL PROTOTYPE DATA';
+   renderShop();
+   return;
+ }
+ try{
+   if(status)status.textContent='CATALOG / CONNECTING TO SUPABASE…';
+   const headers={apikey:SUPABASE_CONFIG.anonKey};
+   const base=SUPABASE_CONFIG.url.replace(/\/$/,'');
+   const [productsRes, variantsRes]=await Promise.all([
+     fetch(base+'/rest/v1/products?select=*&status=neq.ARCHIVED&order=id.asc',{headers}),
+     fetch(base+'/rest/v1/product_variants?select=*&order=product_id.asc',{headers})
+   ]);
+   if(!productsRes.ok)throw new Error('PRODUCT CATALOG REQUEST FAILED');
+   const remoteProducts=await productsRes.json();
+   const remoteVariants=variantsRes.ok?await variantsRes.json():[];
+   const next={};
+   remoteProducts.forEach(p=>{
+     const variants=remoteVariants.filter(v=>v.product_id===p.id);
+     const colors=[...new Set(variants.map(v=>v.color).filter(Boolean))];
+     const sizes=[...new Set(variants.map(v=>v.size).filter(Boolean))];
+     const stockBySize={};
+     const stockByVariant={};
+     variants.forEach(v=>{
+       const qty=Number(v.stock||0);
+       stockBySize[v.size]=(stockBySize[v.size]||0)+qty;
+       stockByVariant[`${v.color}__${v.size}`]=qty;
+     });
+     next[p.id]={name:p.name,price:Number(p.price||0),category:p.category||'OTHER',type:p.type||'PRODUCT',colors:colors.length?colors:['DEFAULT'],sizes:sizes.length?sizes:['ONE SIZE'],stock:Object.entries(stockBySize).map(([k,v])=>`${k} ${v}`).join(' · ')||'OUT OF STOCK',stockByVariant,status:p.status||'ACTIVE',description:p.description||'',image_url:p.image_url||''};
+   });
+   if(Object.keys(next).length){
+     Object.keys(products).forEach(k=>delete products[k]);
+     Object.assign(products,next);
+     if(status)status.textContent='CATALOG / SUPABASE CONNECTED';
+   }else{
+     if(status)status.textContent='CATALOG / SUPABASE EMPTY — LOCAL PROTOTYPE DATA';
+   }
+   renderShop();
+ }catch(err){
+   console.warn(err);
+   if(status)status.textContent='CATALOG / SUPABASE OFFLINE — LOCAL PROTOTYPE DATA';
+   renderShop();
+ }
+}
+
+function getStockQty(product, color, size){
+ const key=`${color}__${size}`;
+ return Number((product.stockByVariant||{})[key] ?? 0);
+}
+
+function openProduct(id){
+ const p = products[id];
+ if(!p) return;
+ currentProduct = id;
+ selectedSize = p.sizes[0];
+ selectedColor = p.colors[0];
+ document.getElementById('product-code').textContent=id;
+ document.getElementById('product-image-box').innerHTML=imageMarkup(p,true);
+ document.getElementById('product-name').textContent=p.name;
+ document.getElementById('product-price').textContent='¥'+p.price.toLocaleString();
+ document.getElementById('product-meta').textContent=`CATEGORY / ${p.category} · TYPE / ${p.type} · STATUS / ACTIVE`;
+ document.getElementById('data-id').textContent=id;
+ document.getElementById('data-category').textContent=p.category;
+ document.getElementById('data-type').textContent=p.type;
+ document.getElementById('data-colors').textContent=p.colors.join(' / ');
+ document.getElementById('data-price').textContent='¥'+p.price.toLocaleString();
+ updateProductStockDisplay();
+ document.getElementById('product-colors').innerHTML=p.colors.map((c,i)=>`<div class="choice"><input type="radio" id="color-${i}" name="product-color" value="${c}" ${i===0?'checked':''}><label for="color-${i}">${c}</label></div>`).join('');
+ document.getElementById('product-sizes').innerHTML=p.sizes.map((size,i)=>{ const qty=getStockQty(p, selectedColor, size); const sold=qty<=0; return `<div class="choice${sold?' sold-out':''}"><input type="radio" id="size-${i}" name="product-size" value="${size}" ${!sold && i===0?'checked':''} ${sold?'disabled':''}><label for="size-${i}">${size}</label></div>`; }).join('');
+ document.querySelectorAll('input[name="product-color"]').forEach(el=>el.addEventListener('change',()=>{selectedColor=el.value; refreshSizeAvailability(); updateProductStockDisplay();}));
+ document.querySelectorAll('input[name="product-size"]').forEach(el=>el.addEventListener('change',()=>{selectedSize=el.value; updateProductStockDisplay();}));
+ refreshSizeAvailability();
+ updateProductStockDisplay();
+ go('product');
+}
+
+function refreshSizeAvailability(){
+ const p=products[currentProduct];
+ if(!p)return;
+ const color=selectedColor || p.colors[0];
+ const inputs=[...document.querySelectorAll('input[name="product-size"]')];
+ inputs.forEach(input=>{
+   const qty=getStockQty(p, color, input.value);
+   input.disabled=qty<=0;
+   const choice=input.closest('.choice');
+   if(choice) choice.classList.toggle('sold-out', qty<=0);
+ });
+ const checked=document.querySelector('input[name="product-size"]:checked');
+ if(!checked || checked.disabled){
+   const firstAvailable=inputs.find(input=>!input.disabled);
+   inputs.forEach(input=>{input.checked=false;});
+   if(firstAvailable){firstAvailable.checked=true; selectedSize=firstAvailable.value;} else {selectedSize=null;}
+ }
+ const add=document.getElementById('add-cart');
+ if(add){
+   const available=inputs.some(input=>!input.disabled);
+   add.disabled=!available;
+   add.textContent=available?'ADD TO CART →':'SOLD OUT';
+ }
+}
+
+function updateProductStockDisplay(){
+ const p=products[currentProduct];
+ if(!p)return;
+ const color=selectedColor || p.colors[0];
+ const values=p.sizes.map(size=>{
+   const qty=getStockQty(p, color, size);
+   return `${size} ${qty}`;
+ });
+ const el=document.getElementById('product-stock');
+ if(el) el.textContent=`IN STOCK / ${color} / ${values.join(' · ')}`;
+}
+
+
+
+let currentProduct = 'X042-003';
+let selectedSize = null;
+let selectedColor = null;
+let cart = JSON.parse(localStorage.getItem('blank_x042_cart') || '[]');
+function normalizeCart(){
+ cart = Array.isArray(cart) ? cart.map(x => {
+   if(!x || typeof x !== 'object') return null;
+   let id = x.id || x.product_id || '';
+   if(!products[id] && x.name){
+     const match = Object.entries(products).find(([k,v]) => v.name === x.name);
+     if(match) id = match[0];
+   }
+   if(!products[id]) return null;
+   const item = products[id];
+   return {...x, id, name:x.name || item.name, price:Number(x.price ?? item.price), size:x.size || item.sizes[0], color:x.color || item.colors[0], qty:Math.max(1,Number(x.qty)||1)};
+ }).filter(Boolean) : [];
+ localStorage.setItem('blank_x042_cart', JSON.stringify(cart));
+}
+normalizeCart();
+function addToCart(){
+ const itemId = currentProduct || 'X042-003';
+ const item = products[itemId] || products['X042-003'];
+ const id = products[itemId] ? itemId : 'X042-003';
+ const sizeInput = document.querySelector('input[name="product-size"]:checked');
+ const size = sizeInput?.value || selectedSize || item.sizes[0];
+ const color = document.querySelector('input[name="product-color"]:checked')?.value || selectedColor || item.colors[0];
+ const available = getStockQty(item, color, size);
+ if(available<=0){ alert('SOLD OUT / THIS SIZE IS CURRENTLY UNAVAILABLE.'); refreshSizeAvailability(); return; }
+ const found = cart.find(x=>x.id===id && x.size===size && x.color===color);
+ if(found) found.qty++; else cart.push({id,name:item.name,price:item.price,size,color,qty:1});
+ renderCart();
+ localStorage.setItem('blank_x042_cart', JSON.stringify(cart));
+ go('cart');
+}
+function selectSize(size){ selectedSize=size; }
+function selectColor(color){ selectedColor=color; }
+function renderCart(){
+ const box=document.getElementById('cart-items'); if(!box)return;
+ if(!cart.length){box.innerHTML='<div class="empty-note">CART IS EMPTY.</div>';} else {box.innerHTML=cart.map((x,i)=>{
+   const product=products[x.id];
+   const available=product ? getStockQty(product,x.color,x.size) : 0;
+   const atMax=Number(x.qty)>=available;
+   return `<div class="history-card"><div style="display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:start"><div class="pic" style="height:64px;margin:0">${product?imageMarkup(product):'<div class="image-fallback">X042</div>'}</div><div><div class="history-meta"><span class="code">${x.id}</span><span class="status">QTY ${x.qty} / STOCK ${available}</span></div><h2 style="font-size:17px;letter-spacing:2px;margin:12px 0 4px">${x.name}</h2><div class="small">${x.color} / SIZE ${x.size}</div><div class="small" style="margin-top:8px">¥${(x.price*x.qty).toLocaleString()}</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px"><button onclick="changeCartQty(${i},-1)" aria-label="Decrease quantity">−</button><div style="display:flex;align-items:center;justify-content:center;border:1px solid #555;font-size:12px">${x.qty}</div><button onclick="changeCartQty(${i},1)" ${atMax?'disabled':''} aria-label="Increase quantity">+</button></div><button onclick="removeCart(${i})" style="margin-top:8px;width:100%">REMOVE</button></div>`;
+ }).join('');}
+ const total=cart.reduce((a,x)=>a+x.price*x.qty,0); document.getElementById('cart-total').textContent='¥'+total.toLocaleString(); document.getElementById('cart-count').textContent=cart.reduce((a,x)=>a+x.qty,0);
+ const sum=document.getElementById('checkout-summary'); if(sum)sum.innerHTML=cart.length?cart.map(x=>`<div class="row"><span>${x.id || 'PRODUCT'} / ${x.name} × ${x.qty}</span><span>¥${(x.price*x.qty).toLocaleString()}</span></div>`).join('')+`<div class="row"><strong>TOTAL</strong><strong>¥${total.toLocaleString()}</strong></div>`:'<div class="empty-note">CART IS EMPTY.</div>';
+}
+function removeCart(i){cart.splice(i,1);renderCart();localStorage.setItem('blank_x042_cart', JSON.stringify(cart));}
+
+
+function getLocalOrderHistory(){
+ try{
+   const value=JSON.parse(localStorage.getItem('blank_x042_order_history') || '[]');
+   return Array.isArray(value)?value:[];
+ }catch(e){ return []; }
+}
+function saveLocalOrderHistory(order){
+ const safe={
+   order_number:order.order_number,
+   total:Number(order.total||0),
+   created_at:order.created_at || new Date().toISOString(),
+   status:order.status || 'RECEIVED',
+   items:(order.items||[]).map(x=>({
+     product_id:x.product_id||x.id||'', name:x.name||'', size:x.size||'', color:x.color||'', quantity:Number(x.quantity||x.qty||1), price:Number(x.price||0)
+   }))
+ };
+ const history=getLocalOrderHistory().filter(x=>x.order_number!==safe.order_number);
+ history.unshift(safe);
+ localStorage.setItem('blank_x042_order_history',JSON.stringify(history.slice(0,30)));
+}
+function renderHistory(){
+ const box=document.getElementById('history-list');
+ const empty=document.getElementById('history-empty');
+ const count=document.getElementById('history-count');
+ if(!box)return;
+ const history=getLocalOrderHistory();
+ if(count)count.textContent=`${history.length} ORDER${history.length===1?'':'S'}`;
+ if(!history.length){box.innerHTML=''; if(empty)empty.style.display='block'; return;}
+ if(empty)empty.style.display='none';
+ box.innerHTML=history.map(order=>{
+   const date=new Date(order.created_at);
+   const dateText=isNaN(date.getTime())?order.created_at.slice(0,10):date.toLocaleDateString('ja-JP');
+   const items=order.items.map(x=>`${escapeHtml(x.name)} / ${escapeHtml(x.color)} / ${escapeHtml(x.size)} × ${x.quantity}`).join('<br>');
+   return `<div class="history-card"><div class="history-meta"><span class="code">${escapeHtml(order.order_number)}</span><span class="status">${escapeHtml(order.status)}</span></div><div class="small" style="margin-top:9px">${dateText}</div><div style="margin-top:12px;line-height:1.8">${items}</div><div class="row" style="margin-top:14px"><span>TOTAL</span><strong>¥${Number(order.total||0).toLocaleString()}</strong></div></div>`;
+ }).join('');
+}
+function clearLocalOrderHistory(){
+ if(!getLocalOrderHistory().length)return;
+ if(confirm('CLEAR ORDER HISTORY ON THIS DEVICE?')){ localStorage.removeItem('blank_x042_order_history'); renderHistory(); }
+}
+
+
+// v36 / Supabase Auth + ACCOUNT ORDER HISTORY
+const AUTH_STORAGE_KEY='blank_x042_auth_session';
+let memberSession=null;
+
+function getStoredSession(){
+  try{return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'null');}catch(e){return null;}
+}
+function setStoredSession(session){
+  memberSession=session;
+  if(session)localStorage.setItem(AUTH_STORAGE_KEY,JSON.stringify(session));
+  else localStorage.removeItem(AUTH_STORAGE_KEY);
+  renderMemberAuth();
+  if(!session)memberAccessLevel=0;
+  renderAccess();
+}
+function authHeaders(extra={}){
+  const h={apikey:SUPABASE_CONFIG.anonKey,'Content-Type':'application/json',...extra};
+  if(memberSession?.access_token)h.Authorization='Bearer '+memberSession.access_token;
+  return h;
+}
+async function authRequest(path,options={}){
+  const res=await fetch(SUPABASE_CONFIG.url.replace(/\/$/,'')+'/auth/v1'+path,{...options,headers:authHeaders(options.headers||{})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok){throw new Error(data.error_description||data.msg||data.message||'AUTH REQUEST FAILED');}
+  return data;
+}
+async function signUpMember(){
+  const email=document.getElementById('auth-email').value.trim();
+  const password=document.getElementById('auth-password').value;
+  const msg=document.getElementById('auth-message');
+  if(!email||!password){msg.textContent='PLEASE ENTER EMAIL AND PASSWORD.';return;}
+  if(password.length<6){msg.textContent='PASSWORD MUST BE AT LEAST 6 CHARACTERS.';return;}
+  msg.textContent='CREATING ACCOUNT…';
+  try{
+    const data=await authRequest('/signup',{method:'POST',body:JSON.stringify({email,password})});
+    if(data.access_token){setStoredSession(data);msg.textContent='ACCOUNT CREATED.';}
+    else msg.textContent='ACCOUNT CREATED. CHECK YOUR EMAIL TO CONFIRM YOUR ACCOUNT, THEN SIGN IN.';
+  }catch(err){msg.textContent=escapeHtml(err.message);}
+}
+async function signInMember(){
+  const email=document.getElementById('auth-email').value.trim();
+  const password=document.getElementById('auth-password').value;
+  const msg=document.getElementById('auth-message');
+  if(!email||!password){msg.textContent='PLEASE ENTER EMAIL AND PASSWORD.';return;}
+  msg.textContent='SIGNING IN…';
+  try{
+    const data=await authRequest('/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+    setStoredSession(data);
+    msg.textContent='SIGNED IN.';
+  }catch(err){msg.textContent=escapeHtml(err.message);}
+}
+async function refreshMemberSession(){
+  const saved=getStoredSession();
+  if(!saved){memberSession=null;renderMemberAuth();return;}
+  if(saved.expires_at && Date.now()<saved.expires_at*1000-60000){memberSession=saved;renderMemberAuth();return;}
+  if(saved.refresh_token){
+    try{
+      const data=await authRequest('/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:saved.refresh_token})});
+      setStoredSession(data);
+      return;
+    }catch(e){}
+  }
+  setStoredSession(null);
+}
+function signOutMember(){setStoredSession(null);}
+function renderMemberAuth(){
+  const signed=!!memberSession?.user;
+  const form=document.getElementById('member-auth-form');
+  const logged=document.getElementById('member-authenticated');
+  const label=document.getElementById('auth-state-label');
+  if(!form||!logged)return;
+  form.style.display=signed?'none':'block';
+  logged.style.display=signed?'block':'none';
+  if(label)label.textContent=signed?'MEMBER ACCOUNT / ACTIVE':'MEMBER ACCESS / SIGN IN';
+  if(signed){
+    const user=memberSession.user;
+    const email=document.getElementById('member-email');
+    const uid=document.getElementById('member-user-id');
+    const id=document.getElementById('member-display-id');
+    const level=document.getElementById('member-access-level');
+    if(email)email.textContent=user.email||'—';
+    if(uid)uid.textContent=user.id||'—';
+    if(id)id.textContent='X042-'+String(user.id||'GUEST').replaceAll('-','').slice(0,10).toUpperCase();
+    if(level)level.textContent='01';
+  }else{
+    const id=document.getElementById('member-display-id');
+    const level=document.getElementById('member-access-level');
+    if(id)id.textContent='X042-GUEST';
+    if(level)level.textContent='GUEST';
+  }
+  if(location.hash==='#history') loadAccountHistory();
+}
+
+
+async function placeOrder(){
+ const message=document.getElementById('checkout-message');
+ if(!cart.length){message.textContent='CART IS EMPTY.'; return;}
+ const name=document.getElementById('checkout-name').value.trim();
+ const email=document.getElementById('checkout-email').value.trim();
+ const postal=document.getElementById('checkout-postal').value.trim();
+ const address=document.getElementById('checkout-address').value.trim();
+ if(!name||!email||!postal||!address){message.textContent='PLEASE COMPLETE ALL FIELDS.'; return;}
+ if(!SUPABASE_CONFIG.checkoutFunctionUrl){message.textContent='PAYMENT CONNECTION PENDING.'; return;}
+ const orderId='X042-'+new Date().toISOString().slice(0,10).replaceAll('-','')+'-'+String(Date.now()).slice(-4);
+ const total=cart.reduce((a,x)=>a+x.price*x.qty,0);
+ const payload={
+   client_order_id:orderId,
+   customer:{name,email},
+   shipping:{postal_code:postal,address},
+   items:cart.map(x=>({product_id:x.id,name:x.name,price:Number(x.price),size:x.size,color:x.color,quantity:Number(x.qty)})),
+   total, currency:'JPY', created_at:new Date().toISOString()
+ };
+ message.textContent='PREPARING SECURE PAYMENT…';
+ const button=document.getElementById('place-order-btn'); if(button)button.disabled=true;
+ try{
+   const res=await fetch(SUPABASE_CONFIG.checkoutFunctionUrl,{method:'POST',headers:authHeaders(),body:JSON.stringify({order:payload})});
+   const result=await res.json().catch(()=>({}));
+   if(!res.ok||!result.checkout_url)throw new Error(result.detail||result.error||'PAYMENT SESSION CREATION FAILED');
+   window.__blankX042LastOrder={...payload,order_id:result.order_id||null,order_number:result.order_number||orderId,total:result.total??total,status:result.status||'PENDING'};
+   message.textContent='REDIRECTING TO SECURE CHECKOUT…';
+   window.location.href=result.checkout_url;
+ }catch(err){
+   console.warn(err);
+   message.textContent='PAYMENT FAILED TO START / PLEASE TRY AGAIN.';
+   if(button)button.disabled=false;
+ }
+}
+
+
+// v48 / MEMBER ACCESS CONTENT
+let memberAccessLevel=0;
+const ACCESS_CONTENT={
+  development:{code:'DEVELOPMENT FILE_003',title:'PROCESS',label:'制作過程・デザイン資料',body:'BLANK_X042の制作工程、試作、素材検証を記録するMEMBER ONLY FILE。<br><br><b>01 / CONCEPT</b><br>未確定の領域を、共にプロトタイプする。<br><br><b>02 / PROTOTYPE</b><br>デザイン・素材・仕様を検証し、次の形へ更新していく。<br><br><b>03 / STATUS</b><br>ACCESS LEVEL 02 CONTENT / MEMBER ONLY'},
+  interview:{code:'INTERVIEW',title:"DESIGNER'S NOTE",label:'デザイナーノート',body:'BLANK_X042の思想と制作意図を読むMEMBER ONLY NOTE。<br><br><b>WHY BLANK_X042?</b><br>完成された答えではなく、まだ名前のない領域をプロトタイプするためのコードネーム。<br><br><b>DESIGN PRINCIPLE</b><br>UNDEFINED AREAS.<br>TOGETHER. WE PROTOTYPE.'},
+  archive:{code:'ARCHIVE / X042-001',title:'PRODUCT ARCHIVE',label:'PRODUCT ARCHIVE',body:'X042-001のプロダクトアーカイブ。<br><br><b>ARCHIVE STATUS</b><br>MEMBER ONLY / ACCESS LEVEL 02<br><br><b>RECORD</b><br>初期プロダクトの思想・仕様・制作記録を保存するアーカイブ。'}
+};
+function renderAccess(){
+  const status=document.getElementById('access-status');
+  const box=document.getElementById('access-list');
+  if(!status||!box)return;
+  if(!memberSession?.user){
+    status.textContent='SIGN IN REQUIRED / ACCESS LEVEL 02';
+    box.innerHTML='<div class="lock"><div class="code">MEMBER ONLY</div><h2>SIGN IN TO UNLOCK</h2><p class="small">MEMBER ACCESS IS REQUIRED TO OPEN THESE FILES.</p><button style="width:100%;margin-top:14px" onclick="go(\'member\')">GO TO MEMBER →</button></div>';
+    return;
+  }
+  if(memberAccessLevel<2){
+    status.textContent='ACCESS LOCKED / LEVEL '+String(memberAccessLevel).padStart(2,'0')+' — LEVEL 02 REQUIRED';
+    box.innerHTML=Object.values(ACCESS_CONTENT).map(c=>`<div class="lock"><div class="code">${escapeHtml(c.code)}</div><h2>${escapeHtml(c.title)}</h2><p class="small">${escapeHtml(c.label)}</p>🔒</div>`).join('');
+    return;
+  }
+  status.textContent='ACCESS GRANTED / LEVEL 02';
+  box.innerHTML=`
+    <button class="lock" type="button" onclick="openAccessContent('development')" style="width:100%;text-align:left;background:#1f1f1f;color:#eee;border:1px solid #555;cursor:pointer"><div class="code">DEVELOPMENT FILE_003</div><h2>PROCESS</h2><p class="small">制作過程・デザイン資料</p><div style="margin-top:10px">OPEN FILE →</div></button>
+    <button class="lock" type="button" onclick="openAccessContent('interview')" style="width:100%;text-align:left;background:#1f1f1f;color:#eee;border:1px solid #555;cursor:pointer"><div class="code">INTERVIEW</div><h2>DESIGNER'S NOTE</h2><p class="small">デザイナーノート</p><div style="margin-top:10px">OPEN FILE →</div></button>
+    <button class="lock" type="button" onclick="openAccessContent('archive')" style="width:100%;text-align:left;background:#1f1f1f;color:#eee;border:1px solid #555;cursor:pointer"><div class="code">ARCHIVE / X042-001</div><h2>PRODUCT ARCHIVE</h2><p class="small">PRODUCT ARCHIVE</p><div style="margin-top:10px">OPEN FILE →</div></button>`;
+}
+function openAccessContent(key){
+  if(!memberSession?.user){go('member');return;}
+  if(memberAccessLevel<2){renderAccess();return;}
+  const c=ACCESS_CONTENT[key];
+  if(!c)return;
+  document.getElementById('access-detail-code').textContent=c.code;
+  document.getElementById('access-detail-title').textContent=c.title;
+  document.getElementById('access-detail-label').textContent=c.label+' / MEMBER ONLY';
+  document.getElementById('access-detail-body').innerHTML=c.body;
+  document.getElementById('access-detail-message').textContent='ACCESS GRANTED / LEVEL 02';
+  go('access-detail');
+}
+
+// v37 / MEMBER PROFILE
+async function loadMemberProfile(){
+  const msg=document.getElementById('profile-message');
+  if(!memberSession?.user){
+    const ids=['profile-display-name','profile-email','profile-member-id','profile-access-level','profile-score','profile-points','profile-user-id'];
+    ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+    memberAccessLevel=0;
+    renderAccess();
+    if(msg)msg.textContent='SIGN IN TO VIEW YOUR PROFILE.';
+    return;
+  }
+  const user=memberSession.user;
+  const email=document.getElementById('profile-email');
+  const uid=document.getElementById('profile-user-id');
+  if(email)email.textContent=user.email||'—';
+  if(uid)uid.textContent=user.id||'—';
+  if(msg)msg.textContent='LOADING PROFILE…';
+  try{
+    const rows=await supabaseRest('/profiles?select=id,member_id,display_name,access_level,x042_score,points&id=eq.'+encodeURIComponent(user.id)+'&limit=1');
+    const profile=rows[0]||{};
+    const memberId=profile.member_id || ('X042-'+String(user.id||'GUEST').replaceAll('-','').slice(0,10).toUpperCase());
+    document.getElementById('profile-display-name').textContent=profile.display_name||'—';
+    document.getElementById('profile-member-id').textContent=memberId;
+    memberAccessLevel=Number(profile.access_level??1)||1;
+    document.getElementById('profile-access-level').textContent=memberAccessLevel;
+    document.getElementById('profile-score').textContent=profile.x042_score==null?'—':Number(profile.x042_score).toLocaleString();
+    renderAccess();
+    document.getElementById('profile-points').textContent=profile.points==null?'—':Number(profile.points).toLocaleString();
+    if(msg)msg.textContent=rows.length?'PROFILE SYNCED.':'PROFILE RECORD NOT FOUND YET.';
+  }catch(err){
+    console.warn(err);
+    if(msg)msg.textContent='PROFILE COULD NOT BE LOADED. CHECK RLS / SUPABASE CONNECTION.';
+  }
+}
+
+// v36 / ACCOUNT ORDER HISTORY
+async function supabaseRest(path, options={}){
+ const res=await fetch(SUPABASE_CONFIG.url.replace(/\/$/,'')+'/rest/v1'+path,{...options,headers:authHeaders(options.headers||{})});
+ const data=await res.json().catch(()=>[]);
+ if(!res.ok) throw new Error(data?.message||data?.error_description||'SUPABASE REQUEST FAILED');
+ return data;
+}
+function renderAccountHistory(orders, itemsByOrder){
+ const box=document.getElementById('history-list');
+ const empty=document.getElementById('history-empty');
+ const count=document.getElementById('history-count');
+ if(!box)return;
+ if(count)count.textContent=`${orders.length} ORDER${orders.length===1?'':'S'}`;
+ if(!orders.length){box.innerHTML=''; if(empty){empty.textContent='NO ACCOUNT ORDERS YET.';empty.style.display='block';}return;}
+ if(empty)empty.style.display='none';
+ box.innerHTML=orders.map(order=>{
+   const date=new Date(order.created_at);
+   const dateText=isNaN(date.getTime())?String(order.created_at||'').slice(0,10):date.toLocaleDateString('ja-JP');
+   const items=(itemsByOrder[order.id]||[]).map(x=>`${escapeHtml(x.product_name)} / ${escapeHtml(x.color)} / ${escapeHtml(x.size)} × ${Number(x.quantity||0)}`).join('<br>') || 'NO ITEM DETAILS';
+   return `<div class="history-card"><div class="history-meta"><span class="code">${escapeHtml(order.order_number)}</span><span class="status">${escapeHtml(order.status)}</span></div><div class="small" style="margin-top:9px">${dateText}</div><div style="margin-top:12px;line-height:1.8">${items}</div><div class="row" style="margin-top:14px"><span>TOTAL</span><strong>¥${Number(order.total||0).toLocaleString()}</strong></div></div>`;
+ }).join('');
+}
+async function loadAccountHistory(){
+ const msg=document.getElementById('history-message');
+ if(!memberSession?.access_token){
+   renderAccountHistory([],{});
+   const empty=document.getElementById('history-empty'); if(empty)empty.textContent='SIGN IN TO VIEW YOUR ORDER HISTORY.';
+   if(msg)msg.textContent='MEMBER SIGN IN REQUIRED.';
+   return;
+ }
+ if(msg)msg.textContent='LOADING ACCOUNT HISTORY…';
+ try{
+   const orders=await supabaseRest('/orders?select=id,order_number,total,status,created_at&user_id=eq.'+encodeURIComponent(memberSession.user.id)+'&order=created_at.desc&limit=50');
+   const itemsByOrder={};
+   if(orders.length){
+     const ids=orders.map(o=>o.id).join(',');
+     const items=await supabaseRest('/order_items?select=order_id,product_name,color,size,quantity,line_total&order_id=in.('+ids+')');
+     items.forEach(item=>{(itemsByOrder[item.order_id] ||= []).push(item);});
+   }
+   renderAccountHistory(orders,itemsByOrder);
+   if(msg)msg.textContent=orders.length?'ACCOUNT HISTORY SYNCED.':'NO ACCOUNT ORDERS YET.';
+ }catch(err){
+   console.warn(err);
+   if(msg)msg.textContent='ACCOUNT HISTORY COULD NOT BE LOADED. CHECK RLS / SUPABASE CONNECTION.';
+ }
+}
+
+function renderCoupons(rows){
+ const box=document.getElementById('coupon-list');
+ const empty=document.getElementById('coupon-empty');
+ const count=document.getElementById('coupon-count');
+ if(!box)return;
+ if(count)count.textContent=`${rows.length} COUPON${rows.length===1?'':'S'}`;
+ if(!rows.length){box.innerHTML=''; if(empty){empty.textContent='NO AVAILABLE COUPONS YET.';empty.style.display='block';}return;}
+ if(empty)empty.style.display='none';
+ box.innerHTML=rows.map(row=>{
+   const c=row.coupon||{};
+   const value=c.discount_type==='PERCENT'?`${Number(c.discount_value||0)}% OFF`:`¥${Number(c.discount_value||0).toLocaleString()} OFF`;
+   const min=Number(c.min_order_amount||0)>0?`MINIMUM ORDER ¥${Number(c.min_order_amount).toLocaleString()}`:'NO MINIMUM ORDER';
+   const expires=c.expires_at?new Date(c.expires_at).toLocaleDateString('ja-JP'):'NO EXPIRATION';
+   return `<div class="history-card"><div class="history-meta"><span class="code">${escapeHtml(c.code||'COUPON')}</span><span class="status">${escapeHtml(row.status||'AVAILABLE')}</span></div><div style="font-size:18px;font-weight:700;margin-top:12px">${escapeHtml(c.name||'COUPON')}</div><div style="font-size:22px;font-weight:700;margin-top:10px">${escapeHtml(value)}</div><div class="small" style="margin-top:10px;line-height:1.7">${escapeHtml(c.description||'')}<br>${escapeHtml(min)}<br>EXPIRES ${escapeHtml(expires)}</div></div>`;
+ }).join('');
+}
+
+async function loadCoupons(){
+ const msg=document.getElementById('coupon-message');
+ if(!memberSession?.access_token){
+   renderCoupons([]);
+   if(msg)msg.textContent='MEMBER SIGN IN REQUIRED.';
+   return;
+ }
+ if(msg)msg.textContent='LOADING COUPONS…';
+ try{
+   const userId=encodeURIComponent(memberSession.user.id);
+   const rows=await supabaseRest('/member_coupons?select=id,status,issued_at,used_at,order_id,coupon:coupons(code,name,description,discount_type,discount_value,min_order_amount,starts_at,expires_at,status)&user_id=eq.'+userId+'&order=issued_at.desc');
+   const activeRows=rows.filter(r=>r.coupon);
+   renderCoupons(activeRows);
+   if(msg)msg.textContent=activeRows.length?'COUPONS SYNCED.':'NO AVAILABLE COUPONS YET.';
+ }catch(err){
+   console.warn(err);
+   renderCoupons([]);
+   if(msg)msg.textContent='COUPONS COULD NOT BE LOADED. CHECK RLS / SUPABASE CONNECTION.';
+ }
+}
+
+function renderCollection(rows){
+  const box=document.getElementById('collection-list');
+  const count=document.getElementById('collection-count');
+  if(count) count.textContent=`${rows.length} ${rows.length===1?'ITEM':'ITEMS'}`;
+  if(!box)return;
+  if(!rows.length){
+    box.innerHTML='<div class="history-empty">NO COLLECTION ITEMS YET.</div>';
+    return;
+  }
+  box.innerHTML=rows.map(r=>{
+    const acquired=r.acquired_at?new Date(r.acquired_at).toLocaleDateString('ja-JP'):'—';
+    const variant=[r.color,r.size].filter(Boolean).map(escapeHtml).join(' / ')||'ONE SIZE';
+    return `<div class="collection-card"><div class="code">${escapeHtml(r.product_id||'X042')}</div><h2 style="font-size:20px;margin:0 0 10px">${escapeHtml(r.product_name||'UNKNOWN ITEM')}</h2><div class="small">${variant}</div><div class="row" style="margin-top:14px"><span>QTY</span><span>${Number(r.quantity||1)}</span></div><div class="small" style="margin-top:10px">ACQUIRED ${escapeHtml(acquired)}</div></div>`;
+  }).join('');
+}
+
+async function loadCollection(){
+  const msg=document.getElementById('collection-message');
+  if(!memberSession?.access_token){
+    renderCollection([]);
+    if(msg)msg.textContent='MEMBER SIGN IN REQUIRED.';
+    return;
+  }
+  if(msg)msg.textContent='LOADING COLLECTION…';
+  try{
+    const userId=encodeURIComponent(memberSession.user.id);
+    const rows=await supabaseRest('/member_collection?select=id,product_id,product_name,color,size,quantity,source_order_id,acquired_at&user_id=eq.'+userId+'&order=acquired_at.desc');
+    renderCollection(rows);
+    if(msg)msg.textContent=rows.length?'COLLECTION SYNCED.':'NO COLLECTION ITEMS YET.';
+  }catch(err){
+    console.warn(err);
+    renderCollection([]);
+    if(msg)msg.textContent='COLLECTION COULD NOT BE LOADED. CHECK RLS / SUPABASE CONNECTION.';
+  }
+}
+
+function renderLabPrototypeState(rows){
+  const summary=document.getElementById('lab-prototype-state-summary');
+  if(!summary)return;
+  const groups={};
+  (rows||[]).forEach(r=>{
+    const q=Number(r.question_no);
+    if(!groups[q])groups[q]=[];
+    groups[q].push(r);
+  });
+  const names=['COLOR','GRAPHIC','FIT'];
+  const labels=names.map((name,i)=>{
+    const list=groups[i+1]||[];
+    const winner=list.reduce((a,b)=>{
+      const ac=Number(a?.count??a?.vote_count??0);
+      const bc=Number(b?.count??b?.vote_count??0);
+      return !a||bc>ac?b:a;
+    },null);
+    const count=Number(winner?.count??winner?.vote_count??0);
+    return count>0 ? name+' '+(winner.option_code||winner.code||winner.label||'—') : name+' —';
+  });
+  summary.textContent=labels.join(' / ');
+}
+
+function renderLabResults(rows){
+  renderLabPrototypeState(rows);
+  const box=document.getElementById('lab-result-list');
+  if(!box)return;
+  if(!rows.length){
+    box.innerHTML='<div class="empty-note">NO VOTES YET.</div>';
+    return;
+  }
+  const groups={};
+  rows.forEach(r=>{
+    const qid=r.question_id||'q';
+    if(!groups[qid])groups[qid]={question_no:r.question_no,question_title:r.question_title||r.title||'',options:[]};
+    const count=Number(r.vote_count ?? r.votes ?? r.count ?? r.total_votes ?? 0);
+    groups[qid].options.push({code:r.option_code||r.code||'',label:r.label||r.option_label||'',count});
+  });
+  box.innerHTML=Object.values(groups).sort((a,b)=>Number(a.question_no)-Number(b.question_no)).map(g=>{
+    const total=g.options.reduce((sum,o)=>sum+o.count,0);
+    return `<div class="result-block"><div class="row" style="padding:10px 0"><span><b>${String(g.question_no||'').padStart(2,'0')}. ${escapeHtml(g.question_title)}</b></span><span>${total} VOTE${total===1?'':'S'}</span></div>${g.options.map(o=>{
+      const pct=total?Math.round((o.count/total)*100):0;
+      return `<div style="margin:12px 0"><div class="row" style="padding:0;border:0"><span>${escapeHtml(o.code)} / ${escapeHtml(o.label)}</span><span>${o.count} · ${pct}%</span></div><div class="bar"><span style="width:${pct}%"></span></div></div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+
+async function loadLabResults(prototypeId){
+  const box=document.getElementById('lab-result-list');
+  if(!box)return;
+  if(!memberSession?.access_token){
+    box.innerHTML='<div class="empty-note">MEMBER SIGN IN REQUIRED.</div>';
+    return;
+  }
+
+  try{
+    // v45: read the vote records directly and aggregate them in the app.
+    // This avoids depending on the PostgREST exposure/permission state of
+    // the get_lab_results RPC while preserving the same result display.
+    const rows=await supabaseRest('/lab_votes?select=question_id,option_id');
+
+    const questions=await supabaseRest(
+      '/lab_questions?select=id,question_no,title,lab_options(id,option_code,label)&prototype_id=eq.'+
+      encodeURIComponent(prototypeId)+
+      '&order=question_no'
+    );
+
+    const optionMap={};
+    (questions||[]).forEach(q=>{
+      (q.lab_options||[]).forEach(o=>{
+        optionMap[o.id]={
+          question_id:q.id,
+          question_no:q.question_no,
+          question_title:q.title||'',
+          option_code:o.option_code||'',
+          label:o.label||'',
+          count:0
+        };
+      });
+    });
+
+    (rows||[]).forEach(v=>{
+      if(optionMap[v.option_id]) optionMap[v.option_id].count++;
+    });
+
+    renderLabResults(Object.values(optionMap));
+  }catch(err){
+    // Fallback to the verified DB-side aggregation RPC.
+    try{
+      const res=await fetch(SUPABASE_CONFIG.url.replace(/\/$/,'')+'/rest/v1/rpc/get_lab_results',{
+        method:'POST',
+        headers:authHeaders(),
+        body:JSON.stringify({p_code:'PROTOTYPE_004'})
+      });
+      if(!res.ok)throw new Error('RESULTS LOAD FAILED');
+      const rows=await res.json();
+      renderLabResults(Array.isArray(rows)?rows:[]);
+    }catch(fallbackErr){
+      console.warn(err, fallbackErr);
+      box.innerHTML='<div class="empty-note">RESULTS COULD NOT BE LOADED.</div>';
+    }
+  }
+}
+
+function renderLabQuestions(questions, myVotes){
+  const box=document.getElementById('lab-vote-list');
+  if(!box)return;
+  if(!questions.length){
+    box.innerHTML='<div class="empty-note">NO ACTIVE LAB QUESTIONS.</div>';
+    return;
+  }
+  const voted={};
+  (myVotes||[]).forEach(v=>voted[v.question_id]=v.option_id);
+  box.innerHTML=questions.map(q=>{
+    const selected=voted[q.id]||null;
+    const options=(q.lab_options||[]).map(o=>{
+      const active=selected===o.id;
+      const disabled=!!selected;
+      return `<button type="button" class="lab-option${active?' selected':''}" ${disabled?'disabled':''} onclick="castLabVote('${q.id}','${o.id}')"><span>${escapeHtml(o.option_code)}</span><span>${escapeHtml(o.label)}${active?' ✓':''}</span></button>`;
+    }).join('');
+    return `<div class="vote"><b>${String(q.question_no).padStart(2,'0')}. ${escapeHtml(q.title)}</b><div class="lab-options">${options}</div>${selected?'<div class="small" style="margin-top:10px">VOTE RECORDED / ONE VOTE PER QUESTION.</div>':''}</div>`;
+  }).join('');
+}
+
+async function loadLab(){
+  const msg=document.getElementById('lab-message');
+  if(!memberSession?.access_token){
+    renderLabQuestions([],{});
+    if(msg)msg.textContent='MEMBER SIGN IN REQUIRED TO VOTE.';
+    return;
+  }
+  if(msg)msg.textContent='LOADING LAB…';
+  try{
+    const proto=await supabaseRest('/lab_prototypes?select=id,code,title,description,status&code=eq.PROTOTYPE_004&status=eq.ACTIVE&limit=1');
+    if(!proto.length)throw new Error('LAB PROTOTYPE NOT FOUND');
+    const p=proto[0];
+    const code=document.getElementById('lab-prototype-code');
+    const title=document.getElementById('lab-prototype-title');
+    const desc=document.getElementById('lab-prototype-description');
+    if(code)code.textContent=p.code||'PROTOTYPE_004';
+    if(title)title.textContent=p.title||'NEXT TEE';
+    if(desc)desc.textContent=p.description||'';
+    const questions=await supabaseRest('/lab_questions?select=id,question_no,title,lab_options(id,option_code,label)&prototype_id=eq.'+encodeURIComponent(p.id)+'&order=question_no');
+    const myVotes=await supabaseRest('/lab_votes?select=question_id,option_id&user_id=eq.'+encodeURIComponent(memberSession.user.id));
+    renderLabQuestions(questions,myVotes);
+    await loadLabResults(p.id);
+    if(msg)msg.textContent='LAB SYNCED. SELECT ONE OPTION PER QUESTION.';
+  }catch(err){
+    console.warn(err);
+    renderLabQuestions([],{});
+    if(msg)msg.textContent='LAB COULD NOT BE LOADED. CHECK RLS / SUPABASE CONNECTION.';
+  }
+}
+
+async function castLabVote(questionId, optionId){
+  const msg=document.getElementById('lab-message');
+  if(!memberSession?.access_token){
+    if(msg)msg.textContent='MEMBER SIGN IN REQUIRED TO VOTE.';
+    return;
+  }
+  if(msg)msg.textContent='RECORDING VOTE…';
+  try{
+    const res=await fetch(SUPABASE_CONFIG.url.replace(/\/$/,'')+'/rest/v1/lab_votes',{
+      method:'POST',
+      headers:authHeaders({'Prefer':'return=minimal'}),
+      body:JSON.stringify({
+        user_id:memberSession.user.id,
+        question_id:questionId,
+        option_id:optionId
+      })
+    });
+    if(!res.ok){
+      const data=await res.json().catch(()=>({}));
+      if(res.status===409 || /duplicate|unique/i.test(data?.message||''))throw new Error('ALREADY_VOTED');
+      throw new Error(data?.message||data?.hint||'VOTE FAILED');
+    }
+    if(msg)msg.textContent='VOTE RECORDED.';
+    await loadLab();
+  }catch(err){
+    console.warn(err);
+    if(msg)msg.textContent=err.message==='ALREADY_VOTED'?'ALREADY VOTED FOR THIS QUESTION.':'VOTE COULD NOT BE RECORDED.';
+    await loadLab();
+  }
+}
+
+function renderSettings(){
+  const signed=!!memberSession?.user;
+  const status=document.getElementById('settings-account-status');
+  const email=document.getElementById('settings-account-email');
+  const id=document.getElementById('settings-account-id');
+  if(status)status.textContent=signed?'SIGNED IN':'SIGNED OUT';
+  if(email)email.textContent=signed?(memberSession.user.email||'—'):'—';
+  if(id)id.textContent=signed?(memberSession.user.id||'—'):'—';
+  const pref=localStorage.getItem('blank_x042_notifications');
+  const enabled=pref!=='OFF';
+  const n=document.getElementById('setting-notifications');
+  if(n)n.textContent=enabled?'ON':'OFF';
+}
+
+function toggleSetting(name){
+  if(name==='notifications'){
+    const current=localStorage.getItem('blank_x042_notifications');
+    localStorage.setItem('blank_x042_notifications',current==='OFF'?'ON':'OFF');
+    renderSettings();
+    const msg=document.getElementById('settings-message');
+    if(msg)msg.textContent='PREFERENCE SAVED.';
+  }
+}
+
+function refreshSettings(){
+  renderSettings();
+  const msg=document.getElementById('settings-message');
+  if(msg)msg.textContent='ACCOUNT STATE REFRESHED.';
+}
+
+function openProfile(){
+  history.replaceState(null,'','#profile');
+  showScreenFromHash();
+  loadMemberProfile();
+}
+
+
+function handlePaymentReturn(){
+  const params = new URLSearchParams(location.search);
+  const payment = (params.get('payment') || '').toLowerCase();
+  const order = params.get('order') || '';
+
+  if(payment !== 'success' && payment !== 'cancel') return false;
+
+  const screen = document.getElementById('payment-result');
+  if(!screen) return false;
+
+  const title = document.getElementById('payment-result-title');
+  const mark = document.getElementById('payment-result-mark');
+  const message = document.getElementById('payment-result-message');
+  const orderEl = document.getElementById('payment-result-order');
+  const note = document.getElementById('payment-result-note');
+  const primary = document.getElementById('payment-result-primary');
+
+  if(orderEl) orderEl.textContent = order || 'ORDER NUMBER UNAVAILABLE';
+
+  if(payment === 'success'){
+    if(title) title.textContent = 'PAYMENT COMPLETE';
+    if(mark) mark.textContent = '✓';
+    if(message) message.textContent = 'THANK YOU. YOUR PAYMENT WAS RECEIVED.';
+    if(note) note.textContent = 'ORDER STATUS IS CONFIRMED BY STRIPE WEBHOOK.';
+    if(primary) primary.textContent = 'VIEW ORDER HISTORY →';
+
+    // Payment has completed at Stripe. Clear the local cart so the paid
+    // order is not accidentally submitted again from this device.
+    cart = [];
+    localStorage.setItem('blank_x042_cart', JSON.stringify(cart));
+    renderCart();
+  }else{
+    if(title) title.textContent = 'PAYMENT CANCELLED';
+    if(mark) mark.textContent = '×';
+    if(message) message.textContent = 'PAYMENT WAS CANCELLED.';
+    if(note) note.textContent = 'YOUR CART HAS BEEN KEPT. YOU CAN TRY CHECKOUT AGAIN.';
+    if(primary) primary.textContent = 'RETURN TO CART →';
+    if(primary) primary.onclick = () => go('cart');
+  }
+
+  document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
+  screen.classList.add('active');
+  document.querySelectorAll('.nav a,.nav button').forEach(x => x.classList.remove('active'));
+  window.scrollTo(0,0);
+  return true;
+}
+
+function showScreenFromHash(){
+ const raw=location.hash.replace('#','') || 'home';
+ let id=raw;
+ if(raw.indexOf('product/')===0){
+   const productId=decodeURIComponent(raw.slice(8));
+   if(products[productId]) openProduct(productId);
+   id='product';
+ }
+ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+ const target=document.getElementById(id);
+ if(target) target.classList.add('active');
+ document.querySelectorAll('.nav a,.nav button').forEach(x=>x.classList.remove('active'));
+ const n=document.getElementById('n-'+id); if(n)n.classList.add('active');
+ if(id==='cart'||id==='checkout'){ normalizeCart(); renderCart(); }
+ if(id==='history') loadAccountHistory();
+ if(id==='coupons') loadCoupons();
+ if(id==='collection') loadCollection();
+ if(id==='settings') renderSettings();
+ if(id==='lab') loadLab();
+ window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', showScreenFromHash);
+document.addEventListener('change', (e)=>{
+ if(e.target.matches('input[name="product-size"]')) selectedSize=e.target.value;
+ if(e.target.matches('input[name="product-color"]')) selectedColor=e.target.value;
+});
+
+function go(id){
+ const target=document.getElementById(id);
+ if(!target) return;
+ // Keep one navigation path for taps, browser back/forward, and direct hash URLs.
+ // Assigning location.hash lets the hashchange handler run the same screen lifecycle.
+ const nextHash='#'+id;
+ if(location.hash!==nextHash){
+   location.hash=nextHash;
+ }else{
+   showScreenFromHash();
+ }
+}
+
+// Restore initial cart state on load
+const paymentReturnHandled = handlePaymentReturn();
+const initialHash=location.hash.replace('#','');
+if(!paymentReturnHandled && initialHash && document.getElementById(initialHash)) showScreenFromHash();
+if(!paymentReturnHandled) showScreenFromHash();
+renderCart();
+renderHistory();
+renderMemberAuth();
+refreshMemberSession();
+loadMemberProfile();
+loadProductsFromSupabase();
+</script>
+</body></html>
