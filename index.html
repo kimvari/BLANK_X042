@@ -1063,7 +1063,7 @@ function handlePaymentReturn(){
     // Payment has completed at Stripe. Clear the local cart so the paid
     // order is not accidentally submitted again from this device.
     cart = [];
-    saveCart();
+    localStorage.setItem('blank_x042_cart', JSON.stringify(cart));
     renderCart();
   }else{
     if(title) title.textContent = 'PAYMENT CANCELLED';
