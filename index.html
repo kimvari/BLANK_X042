@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLANK_X042 // LAB / v44</title>
+<title>BLANK_X042 // LAB / v55</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif}
 .app{max-width:430px;margin:auto;min-height:100vh;background:#171717}
@@ -174,7 +174,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div class="section">
 <h2>APP INFORMATION</h2>
 <div class="row"><span>APP</span><span>BLANK_X042 // LAB</span></div>
-<div class="row"><span>BUILD</span><span>v53</span></div>
+<div class="row"><span>BUILD</span><span>v55</span></div>
 </div>
 
 <div class="section">
@@ -212,7 +212,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </section>
 <section id="cart" class="screen">
 <button class="back" onclick="go('shop')">← SHOP</button><h2>CART</h2><div class="small">SELECTED ITEMS</div><div id="cart-items"></div><div class="section"><div class="row"><span>SUBTOTAL</span><strong id="cart-total">¥0</strong></div></div><button id="checkout-btn" style="width:100%;margin-top:18px" onclick="go('checkout')">CHECKOUT →</button></section>
-<section id="checkout" class="screen"><button class="back" onclick="go('cart')">← CART</button><h2>CHECKOUT</h2><div class="small">ORDER SUMMARY</div><div id="checkout-summary" class="section"></div><div class="section"><h2>CONTACT</h2><input id="checkout-name" placeholder="NAME"><input id="checkout-email" type="email" placeholder="EMAIL"></div><div class="section"><h2>SHIPPING ADDRESS</h2><input id="checkout-postal" inputmode="numeric" placeholder="POSTAL CODE"><input id="checkout-address" placeholder="ADDRESS"></div><button id="place-order-btn" style="width:100%;margin-top:18px" onclick="placeOrder()">PAYMENT →</button><div id="checkout-message" class="small" style="margin-top:12px"></div></section>
+<section id="checkout" class="screen"><button class="back" onclick="go('cart')">← CART</button><h2>CHECKOUT</h2><div class="small">ORDER SUMMARY</div><div id="checkout-summary" class="section"></div><div class="section"><h2>COUPON</h2><select id="checkout-coupon" onchange="selectCheckoutCoupon(this.value)" style="width:100%;margin-top:4px"><option value="">NO COUPON</option></select><div id="checkout-coupon-message" class="small" style="margin-top:10px;line-height:1.7">SIGN IN TO USE MEMBER COUPONS.</div></div><div class="section"><h2>CONTACT</h2><input id="checkout-name" placeholder="NAME"><input id="checkout-email" type="email" placeholder="EMAIL"></div><div class="section"><h2>SHIPPING ADDRESS</h2><input id="checkout-postal" inputmode="numeric" placeholder="POSTAL CODE"><input id="checkout-address" placeholder="ADDRESS"></div><button id="place-order-btn" style="width:100%;margin-top:18px" onclick="placeOrder()">PAYMENT →</button><div id="checkout-message" class="small" style="margin-top:12px"></div></section>
 <section id="order-complete" class="screen"><h2>ORDER COMPLETE</h2><div class="order-complete"><div class="mark">✓</div><div class="small">THANK YOU FOR YOUR ORDER.</div><div class="order-number" id="complete-order-number">X042-00000000-0000</div><div class="small">ORDER NUMBER</div><div class="row" style="margin-top:20px"><span>TOTAL</span><strong id="complete-total">¥0</strong></div><div class="small" id="complete-note" style="margin-top:18px">PAYMENT STATUS IS CONFIRMED BY STRIPE WEBHOOK.</div></div><div class="complete-actions"><button onclick="go('shop')">CONTINUE SHOPPING →</button><button onclick="go('history')">VIEW ORDER HISTORY →</button><button onclick="go('home')" style="background:#222;color:#eee;border:1px solid #555">BACK TO HOME →</button></div></section>
 <section id="payment-result" class="screen">
 <h2 id="payment-result-title">PAYMENT RESULT</h2>
@@ -240,7 +240,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v53 / UNIFIED NAVIGATION + STRIPE CHECKOUT + LIVE SUPABASETORY
+// BLANK_X042 APP BUILD v55 / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -581,6 +581,69 @@ function renderMemberAuth(){
 }
 
 
+let checkoutCoupons=[];
+let selectedCouponCode='';
+
+function calculateCouponDiscount(coupon, subtotal){
+  if(!coupon) return 0;
+  const min=Number(coupon.min_order_amount||0);
+  if(subtotal < min) return 0;
+  if(coupon.discount_type==='PERCENT') return Math.min(subtotal, Math.floor(subtotal*Number(coupon.discount_value||0)/100));
+  return Math.min(subtotal, Number(coupon.discount_value||0));
+}
+
+async function loadCheckoutCoupons(){
+  const select=document.getElementById('checkout-coupon');
+  const msg=document.getElementById('checkout-coupon-message');
+  if(!select)return;
+  checkoutCoupons=[];
+  selectedCouponCode='';
+  select.innerHTML='<option value="">NO COUPON</option>';
+  if(!memberSession?.access_token){
+    if(msg)msg.textContent='SIGN IN TO USE MEMBER COUPONS.';
+    renderCheckoutSummary();
+    return;
+  }
+  try{
+    const userId=encodeURIComponent(memberSession.user.id);
+    const rows=await supabaseRest('/member_coupons?select=id,status,issued_at,coupon:coupons(code,name,description,discount_type,discount_value,min_order_amount,starts_at,expires_at,status)&user_id=eq.'+userId+'&status=eq.AVAILABLE&order=issued_at.desc');
+    checkoutCoupons=rows.filter(r=>r.coupon&&r.coupon.status==='ACTIVE');
+    checkoutCoupons.forEach(row=>{
+      const c=row.coupon;
+      const label=c.discount_type==='PERCENT'?`${c.code} / ${c.discount_value}% OFF`:`${c.code} / ¥${Number(c.discount_value||0).toLocaleString()} OFF`;
+      const option=document.createElement('option'); option.value=c.code; option.textContent=label; select.appendChild(option);
+    });
+    if(msg)msg.textContent=checkoutCoupons.length?'SELECT A MEMBER COUPON. DISCOUNT IS VERIFIED SERVER-SIDE.':'NO AVAILABLE MEMBER COUPONS.';
+  }catch(err){
+    console.warn(err);
+    if(msg)msg.textContent='COUPONS COULD NOT BE LOADED.';
+  }
+  renderCheckoutSummary();
+}
+
+function selectCheckoutCoupon(code){
+  selectedCouponCode=String(code||'');
+  renderCheckoutSummary();
+}
+
+function getSelectedCheckoutCoupon(){
+  const row=checkoutCoupons.find(r=>r.coupon?.code===selectedCouponCode);
+  return row?.coupon||null;
+}
+
+function renderCheckoutSummary(){
+  const sum=document.getElementById('checkout-summary');
+  if(!sum)return;
+  if(!cart.length){sum.innerHTML='<div class="empty-note">CART IS EMPTY.</div>';return;}
+  const subtotal=cart.reduce((a,x)=>a+x.price*x.qty,0);
+  const coupon=getSelectedCheckoutCoupon();
+  const discount=calculateCouponDiscount(coupon,subtotal);
+  const total=subtotal-discount;
+  const rows=cart.map(x=>`<div class="row"><span>${x.id || 'PRODUCT'} / ${x.name} × ${x.qty}</span><span>¥${(x.price*x.qty).toLocaleString()}</span></div>`).join('');
+  const couponRow=coupon&&discount>0?`<div class="row"><span>COUPON / ${escapeHtml(coupon.code)}</span><span>-¥${discount.toLocaleString()}</span></div>`:'';
+  sum.innerHTML=rows+`<div class="row"><span>SUBTOTAL</span><strong>¥${subtotal.toLocaleString()}</strong></div>`+couponRow+`<div class="row"><strong>TOTAL</strong><strong>¥${total.toLocaleString()}</strong></div>`;
+}
+
 async function placeOrder(){
  const message=document.getElementById('checkout-message');
  if(!cart.length){message.textContent='CART IS EMPTY.'; return;}
@@ -591,12 +654,16 @@ async function placeOrder(){
  if(!name||!email||!postal||!address){message.textContent='PLEASE COMPLETE ALL FIELDS.'; return;}
  if(!SUPABASE_CONFIG.checkoutFunctionUrl){message.textContent='PAYMENT CONNECTION PENDING.'; return;}
  const orderId='X042-'+new Date().toISOString().slice(0,10).replaceAll('-','')+'-'+String(Date.now()).slice(-4);
- const total=cart.reduce((a,x)=>a+x.price*x.qty,0);
+ const subtotal=cart.reduce((a,x)=>a+x.price*x.qty,0);
+ const coupon=getSelectedCheckoutCoupon();
+ const discount=calculateCouponDiscount(coupon,subtotal);
+ const total=subtotal-discount;
  const payload={
    client_order_id:orderId,
    customer:{name,email},
    shipping:{postal_code:postal,address},
    items:cart.map(x=>({product_id:x.id,name:x.name,price:Number(x.price),size:x.size,color:x.color,quantity:Number(x.qty)})),
+   coupon_code:coupon?.code||null,
    total, currency:'JPY', created_at:new Date().toISOString()
  };
  message.textContent='PREPARING SECURE PAYMENT…';
@@ -1094,7 +1161,7 @@ function showScreenFromHash(){
  if(target) target.classList.add('active');
  document.querySelectorAll('.nav a,.nav button').forEach(x=>x.classList.remove('active'));
  const n=document.getElementById('n-'+id); if(n)n.classList.add('active');
- if(id==='cart'||id==='checkout'){ normalizeCart(); renderCart(); }
+ if(id==='cart'||id==='checkout'){ normalizeCart(); renderCart(); if(id==='checkout') loadCheckoutCoupons(); }
  if(id==='history') loadAccountHistory();
  if(id==='coupons') loadCoupons();
  if(id==='collection') loadCollection();
