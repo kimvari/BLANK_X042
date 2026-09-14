@@ -295,7 +295,7 @@ async function loadProductsFromSupabase(){
    ]);
    if(!productsRes.ok)throw new Error('PRODUCT CATALOG REQUEST FAILED');
    const remoteProducts=await productsRes.json();
-   const remoteVariants=variantsRes.ok?await variantsRes.json():[];   }
+   const remoteVariants=variantsRes.ok?await variantsRes.json():[];
    const next={};
    remoteProducts.forEach(p=>{
      const variants=remoteVariants.filter(v=>v.product_id===p.id);
@@ -672,9 +672,9 @@ async function placeOrder(){
    const res=await fetch(SUPABASE_CONFIG.checkoutFunctionUrl,{method:'POST',headers:authHeaders(),body:JSON.stringify({order:payload})});
    const raw=await res.text();
    let result={};
-   try{result=JSON.parse(raw||'{}');}catch(e){result={raw:raw.slice(0,1200)};}
+   try{result=raw?JSON.parse(raw):{};}catch(e){}
    if(!res.ok||!result.checkout_url){
-     const detail=result.detail||result.error||result.message||result.raw||'PAYMENT SESSION CREATION FAILED';
+     const detail=result.detail||result.error||result.message||raw||'PAYMENT SESSION CREATION FAILED';
      throw new Error(`HTTP ${res.status} / ${detail}`);
    }
    window.__blankX042LastOrder={...payload,order_id:result.order_id||null,order_number:result.order_number||orderId,total:result.total??total,status:result.status||'PENDING'};
@@ -682,7 +682,7 @@ async function placeOrder(){
    window.location.href=result.checkout_url;
  }catch(err){
    console.warn(err);
-   message.textContent='PAYMENT DIAGNOSTIC / '+String(err.message||err).slice(0,900);
+   message.textContent=`PAYMENT DIAGNOSTIC / ${err.message||err}`;
    if(button)button.disabled=false;
  }
 }
