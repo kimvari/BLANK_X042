@@ -240,7 +240,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v55 / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v56 / DIAGNOSTIC / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -293,9 +293,35 @@ async function loadProductsFromSupabase(){
      fetch(base+'/rest/v1/products?select=*&status=neq.ARCHIVED&order=id.asc',{headers}),
      fetch(base+'/rest/v1/product_variants?select=*&order=product_id.asc',{headers})
    ]);
-   if(!productsRes.ok)throw new Error('PRODUCT CATALOG REQUEST FAILED');
+
+   // TEMP DIAGNOSTIC (v56): expose the actual Supabase REST response.
+   // This is intentionally temporary and should be removed after the cause is confirmed.
+   let diagnostic=[];
+   diagnostic.push(`PRODUCTS API: ${productsRes.status} ${productsRes.statusText||''}`.trim());
+   diagnostic.push(`VARIANTS API: ${variantsRes.status} ${variantsRes.statusText||''}`.trim());
+
+   if(!productsRes.ok){
+     let body='';
+     try{body=(await productsRes.text()).slice(0,500);}catch(e){}
+     const msg=`PRODUCTS API ERROR / ${productsRes.status} / ${body||'NO RESPONSE BODY'}`;
+     if(status)status.textContent=msg;
+     throw new Error(msg);
+   }
+
+   if(!variantsRes.ok){
+     let body='';
+     try{body=(await variantsRes.text()).slice(0,500);}catch(e){}
+     const msg=`VARIANTS API ERROR / ${variantsRes.status} / ${body||'NO RESPONSE BODY'}`;
+     if(status)status.textContent=msg;
+     throw new Error(msg);
+   }
+
    const remoteProducts=await productsRes.json();
-   const remoteVariants=variantsRes.ok?await variantsRes.json():[];
+   const remoteVariants=await variantsRes.json();
+
+   if(status){
+     status.textContent=`CATALOG / ${diagnostic.join(' · ')} · VARIANTS: ${remoteVariants.length}`;
+   }
    const next={};
    remoteProducts.forEach(p=>{
      const variants=remoteVariants.filter(v=>v.product_id===p.id);
