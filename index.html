@@ -240,7 +240,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v58 / PAYMENT DIAGNOSTIC / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v59 / CHECKOUT PAYLOAD FIX / STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -669,7 +669,7 @@ async function placeOrder(){
  message.textContent='PREPARING SECURE PAYMENT…';
  const button=document.getElementById('place-order-btn'); if(button)button.disabled=true;
  try{
-   const res=await fetch(SUPABASE_CONFIG.checkoutFunctionUrl,{method:'POST',headers:authHeaders(),body:JSON.stringify({order:payload})});
+   const res=await fetch(SUPABASE_CONFIG.checkoutFunctionUrl,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
    const raw=await res.text();
    let result={};
    try{result=raw?JSON.parse(raw):{};}catch(e){}
