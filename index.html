@@ -240,7 +240,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v57 / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v58 / PAYMENT DIAGNOSTIC / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -670,14 +670,19 @@ async function placeOrder(){
  const button=document.getElementById('place-order-btn'); if(button)button.disabled=true;
  try{
    const res=await fetch(SUPABASE_CONFIG.checkoutFunctionUrl,{method:'POST',headers:authHeaders(),body:JSON.stringify({order:payload})});
-   const result=await res.json().catch(()=>({}));
-   if(!res.ok||!result.checkout_url)throw new Error(result.detail||result.error||'PAYMENT SESSION CREATION FAILED');
+   const raw=await res.text();
+   let result={};
+   try{result=JSON.parse(raw||'{}');}catch(e){result={raw:raw.slice(0,1200)};}
+   if(!res.ok||!result.checkout_url){
+     const detail=result.detail||result.error||result.message||result.raw||'PAYMENT SESSION CREATION FAILED';
+     throw new Error(`HTTP ${res.status} / ${detail}`);
+   }
    window.__blankX042LastOrder={...payload,order_id:result.order_id||null,order_number:result.order_number||orderId,total:result.total??total,status:result.status||'PENDING'};
    message.textContent='REDIRECTING TO SECURE CHECKOUT…';
    window.location.href=result.checkout_url;
  }catch(err){
    console.warn(err);
-   message.textContent='PAYMENT FAILED TO START / PLEASE TRY AGAIN.';
+   message.textContent='PAYMENT DIAGNOSTIC / '+String(err.message||err).slice(0,900);
    if(button)button.disabled=false;
  }
 }
