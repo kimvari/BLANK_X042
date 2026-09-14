@@ -21,7 +21,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 .member{border:1px solid #777;padding:20px;background:linear-gradient(135deg,#333,#111);margin-top:15px}.member .id{font-size:21px;letter-spacing:4px;margin:18px 0}
 .vote{border:1px solid #555;padding:14px;margin:8px 0}.lab-options{display:grid;gap:8px;margin-top:12px}.lab-option{width:100%;display:flex;justify-content:space-between;align-items:center;background:#222;color:#eee;border:1px solid #555;text-align:left}.lab-option.selected{background:#eee;color:#111;border-color:#eee}.lab-option:disabled{opacity:1}.bar{height:5px;background:#555;margin:8px 0}.bar span{display:block;height:100%;background:#eee}
 .lock{border:1px solid #444;padding:18px;margin:10px 0;background:#202020}
-.back{background:none;color:#eee;padding:0;margin-bottom:18px}.history-card{border:1px solid #555;padding:16px;margin:10px 0;background:#1d1d1d}.history-meta{display:flex;justify-content:space-between;gap:12px}.status{font-size:9px;letter-spacing:2px;color:#aaa}.empty-note{border:1px dashed #555;padding:22px;text-align:center;color:#999;font-size:10px;letter-spacing:1px}
+.back{background:none;color:#eee;padding:0;margin-bottom:18px}.history-card{border:1px solid #555;padding:16px;margin:10px 0;background:#1d1d1d}.order-detail-card{border:1px solid #555;padding:18px;margin-top:16px;background:#1d1d1d}.order-detail-row{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #444;padding:13px 0;font-size:11px}.order-detail-row:last-child{border-bottom:0}.order-detail-value{text-align:right;word-break:break-word;color:#eee}.order-detail-total{font-size:18px;font-weight:700}.order-detail-items{border-top:1px solid #555;margin-top:18px;padding-top:4px}.order-detail-item{padding:14px 0;border-bottom:1px solid #444}.order-detail-item:last-child{border-bottom:0}.history-card.clickable{cursor:pointer}.history-card.clickable:active{opacity:.7}.history-meta{display:flex;justify-content:space-between;gap:12px}.status{font-size:9px;letter-spacing:2px;color:#aaa}.empty-note{border:1px dashed #555;padding:22px;text-align:center;color:#999;font-size:10px;letter-spacing:1px}
 .small{font-size:10px;color:#aaa;letter-spacing:1px}.order-complete{border:1px solid #555;padding:28px 18px;margin-top:18px;text-align:center}.order-complete .mark{font-size:34px;letter-spacing:3px;margin-bottom:18px}.order-number{font-size:18px;letter-spacing:3px;margin:14px 0}.complete-actions{display:grid;gap:10px;margin-top:22px}
 
 
@@ -210,6 +210,13 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div id="history-empty" class="history-empty">SIGN IN TO VIEW YOUR ORDER HISTORY.</div>
 <div id="history-message" class="small" style="margin-top:14px;line-height:1.7"></div>
 </section>
+<section id="order-detail" class="screen">
+<button class="back" onclick="go('history')">← PURCHASE HISTORY</button>
+<h2>ORDER DETAIL</h2>
+<div class="small">ORDER RECORD / ACCOUNT</div>
+<div id="order-detail-message" class="small" style="margin-top:14px;line-height:1.7">SELECT AN ORDER FROM PURCHASE HISTORY.</div>
+<div id="order-detail-card" style="display:none"></div>
+</section>
 <section id="cart" class="screen">
 <button class="back" onclick="go('shop')">← SHOP</button><h2>CART</h2><div class="small">SELECTED ITEMS</div><div id="cart-items"></div><div class="section"><div class="row"><span>SUBTOTAL</span><strong id="cart-total">¥0</strong></div></div><button id="checkout-btn" style="width:100%;margin-top:18px" onclick="go('checkout')">CHECKOUT →</button></section>
 <section id="checkout" class="screen"><button class="back" onclick="go('cart')">← CART</button><h2>CHECKOUT</h2><div class="small">ORDER SUMMARY</div><div id="checkout-summary" class="section"></div><div class="section"><h2>COUPON</h2><select id="checkout-coupon" onchange="selectCheckoutCoupon(this.value)" style="width:100%;margin-top:4px"><option value="">NO COUPON</option></select><div id="checkout-coupon-message" class="small" style="margin-top:10px;line-height:1.7">SIGN IN TO USE MEMBER COUPONS.</div></div><div class="section"><h2>CONTACT</h2><input id="checkout-name" placeholder="NAME"><input id="checkout-email" type="email" placeholder="EMAIL"></div><div class="section"><h2>SHIPPING ADDRESS</h2><input id="checkout-postal" inputmode="numeric" placeholder="POSTAL CODE"><input id="checkout-address" placeholder="ADDRESS"></div><button id="place-order-btn" style="width:100%;margin-top:18px" onclick="placeOrder()">PAYMENT →</button><div id="checkout-message" class="small" style="margin-top:12px"></div></section>
@@ -240,7 +247,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v59 / CHECKOUT PAYLOAD FIX / STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v55 / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -669,20 +676,15 @@ async function placeOrder(){
  message.textContent='PREPARING SECURE PAYMENT…';
  const button=document.getElementById('place-order-btn'); if(button)button.disabled=true;
  try{
-   const res=await fetch(SUPABASE_CONFIG.checkoutFunctionUrl,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
-   const raw=await res.text();
-   let result={};
-   try{result=raw?JSON.parse(raw):{};}catch(e){}
-   if(!res.ok||!result.checkout_url){
-     const detail=result.detail||result.error||result.message||raw||'PAYMENT SESSION CREATION FAILED';
-     throw new Error(`HTTP ${res.status} / ${detail}`);
-   }
+   const res=await fetch(SUPABASE_CONFIG.checkoutFunctionUrl,{method:'POST',headers:authHeaders(),body:JSON.stringify({order:payload})});
+   const result=await res.json().catch(()=>({}));
+   if(!res.ok||!result.checkout_url)throw new Error(result.detail||result.error||'PAYMENT SESSION CREATION FAILED');
    window.__blankX042LastOrder={...payload,order_id:result.order_id||null,order_number:result.order_number||orderId,total:result.total??total,status:result.status||'PENDING'};
    message.textContent='REDIRECTING TO SECURE CHECKOUT…';
    window.location.href=result.checkout_url;
  }catch(err){
    console.warn(err);
-   message.textContent=`PAYMENT DIAGNOSTIC / ${err.message||err}`;
+   message.textContent='PAYMENT FAILED TO START / PLEASE TRY AGAIN.';
    if(button)button.disabled=false;
  }
 }
@@ -782,9 +784,58 @@ function renderAccountHistory(orders, itemsByOrder){
    const date=new Date(order.created_at);
    const dateText=isNaN(date.getTime())?String(order.created_at||'').slice(0,10):date.toLocaleDateString('ja-JP');
    const items=(itemsByOrder[order.id]||[]).map(x=>`${escapeHtml(x.product_name)} / ${escapeHtml(x.color)} / ${escapeHtml(x.size)} × ${Number(x.quantity||0)}`).join('<br>') || 'NO ITEM DETAILS';
-   return `<div class="history-card"><div class="history-meta"><span class="code">${escapeHtml(order.order_number)}</span><span class="status">${escapeHtml(order.status)}</span></div><div class="small" style="margin-top:9px">${dateText}</div><div style="margin-top:12px;line-height:1.8">${items}</div><div class="row" style="margin-top:14px"><span>TOTAL</span><strong>¥${Number(order.total||0).toLocaleString()}</strong></div></div>`;
+   return `<div class="history-card clickable" role="button" tabindex="0" onclick="openOrderDetail('${escapeHtml(order.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOrderDetail('${escapeHtml(order.id)}')}"><div class="history-meta"><span class="code">${escapeHtml(order.order_number)}</span><span class="status">${escapeHtml(order.status)}</span></div><div class="small" style="margin-top:9px">${dateText}</div><div style="margin-top:12px;line-height:1.8">${items}</div><div class="row" style="margin-top:14px"><span>TOTAL</span><strong>¥${Number(order.total||0).toLocaleString()}</strong></div><div class="small" style="margin-top:10px;text-align:right">VIEW ORDER DETAIL →</div></div>`;
  }).join('');
 }
+
+function formatOrderDate(value){
+ const date=new Date(value);
+ return isNaN(date.getTime())?String(value||'').slice(0,10):date.toLocaleString('ja-JP');
+}
+
+function renderOrderDetail(order, items){
+ const box=document.getElementById('order-detail-card');
+ const msg=document.getElementById('order-detail-message');
+ if(!box)return;
+ const discount=Number(order.discount_amount||0);
+ const shipping=Number(order.shipping_fee||0);
+ const subtotal=Number(order.subtotal||0);
+ const total=Number(order.total||0);
+ const itemHtml=(items||[]).map(item=>`<div class="order-detail-item"><div style="font-weight:700;font-size:15px">${escapeHtml(item.product_name||'ITEM')}</div><div class="small" style="margin-top:7px">${escapeHtml(item.color||'')} / ${escapeHtml(item.size||'')} × ${Number(item.quantity||0)}</div><div class="row" style="margin-top:10px"><span>UNIT PRICE</span><strong>¥${Number(item.unit_price||0).toLocaleString()}</strong></div><div class="row" style="margin-top:5px"><span>LINE TOTAL</span><strong>¥${Number(item.line_total||0).toLocaleString()}</strong></div></div>`).join('');
+ const couponHtml=order.coupon_code?`<div class="order-detail-row"><span>COUPON</span><span class="order-detail-value">${escapeHtml(order.coupon_code)}</span></div><div class="order-detail-row"><span>DISCOUNT</span><span class="order-detail-value">-¥${discount.toLocaleString()}</span></div>`:'';
+ box.innerHTML=`<div class="order-detail-card"><div class="history-meta"><span class="code">${escapeHtml(order.order_number)}</span><span class="status">${escapeHtml(order.status)}</span></div><div class="small" style="margin-top:10px">${escapeHtml(formatOrderDate(order.created_at))}</div><div class="order-detail-items">${itemHtml||'<div class="small" style="padding:14px 0">NO ITEM DETAILS</div>'}</div><div style="margin-top:14px"><div class="order-detail-row"><span>SUBTOTAL</span><span class="order-detail-value">¥${subtotal.toLocaleString()}</span></div>${couponHtml}<div class="order-detail-row"><span>SHIPPING</span><span class="order-detail-value">¥${shipping.toLocaleString()}</span></div><div class="order-detail-row"><span>TOTAL</span><span class="order-detail-value order-detail-total">¥${total.toLocaleString()}</span></div></div><div class="order-detail-items"><div class="small" style="margin-bottom:4px">CONTACT / SHIPPING</div><div class="order-detail-row"><span>NAME</span><span class="order-detail-value">${escapeHtml(order.customer_name||'—')}</span></div><div class="order-detail-row"><span>EMAIL</span><span class="order-detail-value">${escapeHtml(order.customer_email||'—')}</span></div><div class="order-detail-row"><span>POSTAL CODE</span><span class="order-detail-value">${escapeHtml(order.postal_code||'—')}</span></div><div class="order-detail-row"><span>ADDRESS</span><span class="order-detail-value">${escapeHtml(order.shipping_address||'—')}</span></div></div><div class="order-detail-items"><div class="small" style="margin-bottom:4px">PAYMENT</div><div class="order-detail-row"><span>CHECKOUT SESSION</span><span class="order-detail-value code">${escapeHtml(order.stripe_checkout_session_id||'—')}</span></div><div class="order-detail-row"><span>PAYMENT INTENT</span><span class="order-detail-value code">${escapeHtml(order.stripe_payment_intent_id||'—')}</span></div><div class="order-detail-row"><span>PAID AT</span><span class="order-detail-value">${escapeHtml(order.paid_at?formatOrderDate(order.paid_at):'—')}</span></div></div></div>`;
+ box.style.display='block';
+ if(msg)msg.textContent='ORDER DETAIL SYNCED.';
+}
+
+async function openOrderDetail(orderId){
+ if(!orderId)return;
+ const msg=document.getElementById('order-detail-message');
+ const box=document.getElementById('order-detail-card');
+ if(!memberSession?.access_token){
+   if(msg)msg.textContent='MEMBER SIGN IN REQUIRED.';
+   if(box)box.style.display='none';
+   return;
+ }
+ if(msg)msg.textContent='LOADING ORDER DETAIL…';
+ if(box)box.style.display='none';
+ history.replaceState(null,'','#order-detail');
+ showScreenFromHash();
+ try{
+   const orders=await supabaseRest('/orders?select=id,order_number,total,status,created_at,customer_name,customer_email,postal_code,shipping_address,subtotal,shipping_fee,discount_amount,coupon_code,stripe_checkout_session_id,stripe_payment_intent_id,paid_at&user_id=eq.'+encodeURIComponent(memberSession.user.id)+'&id=eq.'+encodeURIComponent(orderId)+'&limit=1');
+   const order=orders?.[0];
+   if(!order){
+     if(msg)msg.textContent='ORDER NOT FOUND OR ACCESS DENIED.';
+     return;
+   }
+   const items=await supabaseRest('/order_items?select=product_name,color,size,unit_price,quantity,line_total&order_id=eq.'+encodeURIComponent(order.id)+'&order=id.asc');
+   renderOrderDetail(order,items);
+ }catch(err){
+   console.warn(err);
+   if(msg)msg.textContent='ORDER DETAIL COULD NOT BE LOADED. CHECK RLS / SUPABASE CONNECTION.';
+ }
+}
+
 async function loadAccountHistory(){
  const msg=document.getElementById('history-message');
  if(!memberSession?.access_token){
