@@ -784,7 +784,8 @@ function renderAccountHistory(orders, itemsByOrder){
    const date=new Date(order.created_at);
    const dateText=isNaN(date.getTime())?String(order.created_at||'').slice(0,10):date.toLocaleDateString('ja-JP');
    const items=(itemsByOrder[order.id]||[]).map(x=>`${escapeHtml(x.product_name)} / ${escapeHtml(x.color)} / ${escapeHtml(x.size)} × ${Number(x.quantity||0)}`).join('<br>') || 'NO ITEM DETAILS';
-   return `<div class="history-card clickable" role="button" tabindex="0" onclick="openOrderDetail('${escapeHtml(order.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openOrderDetail('${escapeHtml(order.id)}')}"><div class="history-meta"><span class="code">${escapeHtml(order.order_number)}</span><span class="status">${escapeHtml(order.status)}</span></div><div class="small" style="margin-top:9px">${dateText}</div><div style="margin-top:12px;line-height:1.8">${items}</div><div class="row" style="margin-top:14px"><span>TOTAL</span><strong>¥${Number(order.total||0).toLocaleString()}</strong></div><div class="small" style="margin-top:10px;text-align:right">VIEW ORDER DETAIL →</div></div>`;
+   const detailHash='#order-detail/'+encodeURIComponent(order.id);
+   return `<a class="history-card clickable" href="${detailHash}" data-order-id="${escapeHtml(order.id)}" style="display:block;color:#eee;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent"><div class="history-meta"><span class="code">${escapeHtml(order.order_number)}</span><span class="status">${escapeHtml(order.status)}</span></div><div class="small" style="margin-top:9px">${dateText}</div><div style="margin-top:12px;line-height:1.8">${items}</div><div class="row" style="margin-top:14px"><span>TOTAL</span><strong>¥${Number(order.total||0).toLocaleString()}</strong></div><div class="small" style="margin-top:10px;text-align:right">VIEW ORDER DETAIL →</div></a>`;
  }).join('');
 }
 
@@ -819,8 +820,6 @@ async function openOrderDetail(orderId){
  }
  if(msg)msg.textContent='LOADING ORDER DETAIL…';
  if(box)box.style.display='none';
- history.replaceState(null,'','#order-detail');
- showScreenFromHash();
  try{
    const orders=await supabaseRest('/orders?select=id,order_number,total,status,created_at,customer_name,customer_email,postal_code,shipping_address,subtotal,shipping_fee,discount_amount,coupon_code,stripe_checkout_session_id,stripe_payment_intent_id,paid_at&user_id=eq.'+encodeURIComponent(memberSession.user.id)+'&id=eq.'+encodeURIComponent(orderId)+'&limit=1');
    const order=orders?.[0];
@@ -1207,10 +1206,14 @@ function handlePaymentReturn(){
 function showScreenFromHash(){
  const raw=location.hash.replace('#','') || 'home';
  let id=raw;
+ let orderDetailId='';
  if(raw.indexOf('product/')===0){
    const productId=decodeURIComponent(raw.slice(8));
    if(products[productId]) openProduct(productId);
    id='product';
+ }else if(raw.indexOf('order-detail/')===0){
+   orderDetailId=decodeURIComponent(raw.slice(13));
+   id='order-detail';
  }
  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
  const target=document.getElementById(id);
@@ -1219,6 +1222,7 @@ function showScreenFromHash(){
  const n=document.getElementById('n-'+id); if(n)n.classList.add('active');
  if(id==='cart'||id==='checkout'){ normalizeCart(); renderCart(); if(id==='checkout') loadCheckoutCoupons(); }
  if(id==='history') loadAccountHistory();
+ if(id==='order-detail' && orderDetailId) openOrderDetail(orderDetailId);
  if(id==='coupons') loadCoupons();
  if(id==='collection') loadCollection();
  if(id==='settings') renderSettings();
