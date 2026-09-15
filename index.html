@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLANK_X042 // LAB / v55</title>
+<title>BLANK_X042 // LAB / v61</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif}
 .app{max-width:430px;margin:auto;min-height:100vh;background:#171717}
@@ -154,7 +154,13 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <h2>ACCOUNT</h2>
 <div class="row"><span>STATUS</span><span id="settings-account-status">SIGNED OUT</span></div>
 <div class="row"><span>EMAIL</span><span id="settings-account-email" style="max-width:58%;text-align:right;word-break:break-all">—</span></div>
-<div class="row"><span>ACCOUNT ID</span><span id="settings-account-id" class="code" style="max-width:58%;text-align:right;word-break:break-all">—</span></div>
+<div class="row"><span>ACCOUNT ID</span><span id="settings-account-id" class="code" style="max-width:58%;text-align:right;word-break:break-all">—</span></div><div class="row"><span>EMAIL STATUS</span><span id="settings-email-status">—</span></div>
+</div>
+
+<div class="section">
+<h2>PASSWORD</h2>
+<div class="small" style="line-height:1.7">SEND A PASSWORD RESET EMAIL TO YOUR ACCOUNT ADDRESS.</div>
+<button onclick="sendPasswordResetEmail()" style="width:100%;margin-top:12px">SEND PASSWORD RESET EMAIL →</button>
 </div>
 
 <div class="section">
@@ -174,7 +180,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div class="section">
 <h2>APP INFORMATION</h2>
 <div class="row"><span>APP</span><span>BLANK_X042 // LAB</span></div>
-<div class="row"><span>BUILD</span><span>v55</span></div>
+<div class="row"><span>BUILD</span><span>v61</span></div>
 </div>
 
 <div class="section">
@@ -247,7 +253,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v55 / UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v61 / SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -1124,13 +1130,34 @@ function renderSettings(){
   const status=document.getElementById('settings-account-status');
   const email=document.getElementById('settings-account-email');
   const id=document.getElementById('settings-account-id');
+  const emailStatus=document.getElementById('settings-email-status');
   if(status)status.textContent=signed?'SIGNED IN':'SIGNED OUT';
   if(email)email.textContent=signed?(memberSession.user.email||'—'):'—';
   if(id)id.textContent=signed?(memberSession.user.id||'—'):'—';
+  if(emailStatus){
+    if(!signed) emailStatus.textContent='—';
+    else emailStatus.textContent=memberSession.user.email_confirmed_at?'VERIFIED':'PENDING';
+  }
   const pref=localStorage.getItem('blank_x042_notifications');
   const enabled=pref!=='OFF';
   const n=document.getElementById('setting-notifications');
   if(n)n.textContent=enabled?'ON':'OFF';
+}
+
+async function sendPasswordResetEmail(){
+  const msg=document.getElementById('settings-message');
+  if(!memberSession?.user?.email){
+    if(msg)msg.textContent='MEMBER SIGN IN REQUIRED.';
+    return;
+  }
+  if(msg)msg.textContent='SENDING PASSWORD RESET EMAIL…';
+  try{
+    await authRequest('/recover',{method:'POST',body:JSON.stringify({email:memberSession.user.email})});
+    if(msg)msg.textContent='PASSWORD RESET EMAIL SENT. CHECK YOUR INBOX.';
+  }catch(err){
+    console.warn(err);
+    if(msg)msg.textContent='PASSWORD RESET EMAIL COULD NOT BE SENT. PLEASE TRY AGAIN.';
+  }
 }
 
 function toggleSetting(name){
