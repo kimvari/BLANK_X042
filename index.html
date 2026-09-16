@@ -253,7 +253,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v61 / SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v62 / SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -1152,11 +1152,18 @@ async function sendPasswordResetEmail(){
   }
   if(msg)msg.textContent='SENDING PASSWORD RESET EMAIL…';
   try{
-    await authRequest('/recover',{method:'POST',body:JSON.stringify({email:memberSession.user.email})});
+    const redirectTo='https://kimvari.github.io/BLANK_X042/';
+    await authRequest('/recover',{
+      method:'POST',
+      body:JSON.stringify({
+        email:memberSession.user.email,
+        redirect_to:redirectTo
+      })
+    });
     if(msg)msg.textContent='PASSWORD RESET EMAIL SENT. CHECK YOUR INBOX.';
   }catch(err){
     console.warn(err);
-    if(msg)msg.textContent='PASSWORD RESET EMAIL COULD NOT BE SENT. PLEASE TRY AGAIN.';
+    if(msg)msg.textContent='PASSWORD RESET ERROR: '+escapeHtml(err.message||'UNKNOWN ERROR');
   }
 }
 
