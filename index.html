@@ -193,7 +193,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div class="section">
 <h2>APP INFORMATION</h2>
 <div class="row"><span>APP</span><span>BLANK_X042 // LAB</span></div>
-<div class="row"><span>BUILD</span><span>v64</span></div>
+<div class="row"><span>BUILD</span><span>v65</span></div>
 </div>
 
 <div class="section">
@@ -266,7 +266,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v64 / SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v65 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -467,6 +467,19 @@ function renderCart(){
  }).join('');}
  const total=cart.reduce((a,x)=>a+x.price*x.qty,0); document.getElementById('cart-total').textContent='¥'+total.toLocaleString(); document.getElementById('cart-count').textContent=cart.reduce((a,x)=>a+x.qty,0);
  const sum=document.getElementById('checkout-summary'); if(sum)sum.innerHTML=cart.length?cart.map(x=>`<div class="row"><span>${x.id || 'PRODUCT'} / ${x.name} × ${x.qty}</span><span>¥${(x.price*x.qty).toLocaleString()}</span></div>`).join('')+`<div class="row"><strong>TOTAL</strong><strong>¥${total.toLocaleString()}</strong></div>`:'<div class="empty-note">CART IS EMPTY.</div>';
+}
+function changeCartQty(i, delta){
+ const item=cart[i];
+ if(!item)return;
+ const product=products[item.id];
+ const available=product ? getStockQty(product,item.color,item.size) : 0;
+ const current=Math.max(1,Number(item.qty)||1);
+ const next=current+Number(delta||0);
+ if(next<1)return;
+ if(next>available){ alert('STOCK LIMIT / THIS QUANTITY IS NOT AVAILABLE.'); return; }
+ item.qty=next;
+ localStorage.setItem('blank_x042_cart', JSON.stringify(cart));
+ renderCart();
 }
 function removeCart(i){cart.splice(i,1);renderCart();localStorage.setItem('blank_x042_cart', JSON.stringify(cart));}
 
