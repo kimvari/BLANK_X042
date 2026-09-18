@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLANK_X042 // LAB / v64</title>
+<title>BLANK_X042 // LAB / v66</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif}
 .app{max-width:430px;margin:auto;min-height:100vh;background:#171717}
@@ -193,7 +193,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div class="section">
 <h2>APP INFORMATION</h2>
 <div class="row"><span>APP</span><span>BLANK_X042 // LAB</span></div>
-<div class="row"><span>BUILD</span><span>v65</span></div>
+<div class="row"><span>BUILD</span><span>v66</span></div>
 </div>
 
 <div class="section">
@@ -266,7 +266,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v65 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v66 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -340,6 +340,15 @@ async function loadProductsFromSupabase(){
      Object.keys(products).forEach(k=>delete products[k]);
      Object.assign(products,next);
      if(status)status.textContent='CATALOG / SUPABASE CONNECTED';
+     if(location.hash.indexOf('#product/')===0){
+       const openId=decodeURIComponent(location.hash.slice(9));
+       if(products[openId]){
+         currentProduct=openId;
+         selectedColor=products[openId].colors[0]||null;
+         selectedSize=products[openId].sizes[0]||null;
+         openProduct(openId);
+       }
+     }
    }else{
      if(status)status.textContent='CATALOG / SUPABASE EMPTY — LOCAL PROTOTYPE DATA';
    }
@@ -354,6 +363,46 @@ async function loadProductsFromSupabase(){
 function getStockQty(product, color, size){
  const key=`${color}__${size}`;
  return Number((product.stockByVariant||{})[key] ?? 0);
+}
+
+function renderProductVariantChoices(){
+ const p=products[currentProduct];
+ const colorsBox=document.getElementById('product-colors');
+ const sizesBox=document.getElementById('product-sizes');
+ if(!p || !colorsBox || !sizesBox) return;
+
+ selectedColor=selectedColor || p.colors[0] || null;
+ selectedSize=selectedSize || p.sizes[0] || null;
+
+ colorsBox.innerHTML=(p.colors||[]).map((c,i)=>
+   `<div class="choice"><input type="radio" id="color-${i}" name="product-color" value="${escapeHtml(c)}" ${c===selectedColor?'checked':''}><label for="color-${i}">${escapeHtml(c)}</label></div>`
+ ).join('');
+
+ sizesBox.innerHTML=(p.sizes||[]).map((size,i)=>{
+   const qty=getStockQty(p, selectedColor, size);
+   const sold=qty<=0;
+   return `<div class="choice${sold?' sold-out':''}"><input type="radio" id="size-${i}" name="product-size" value="${escapeHtml(size)}" ${size===selectedSize && !sold?'checked':''} ${sold?'disabled':''}><label for="size-${i}">${escapeHtml(size)}</label></div>`;
+ }).join('');
+
+ document.querySelectorAll('input[name="product-color"]').forEach(el=>
+   el.addEventListener('change',()=>{
+     selectedColor=el.value;
+     selectedSize=null;
+     renderProductVariantChoices();
+     refreshSizeAvailability();
+     updateProductStockDisplay();
+   })
+ );
+
+ document.querySelectorAll('input[name="product-size"]').forEach(el=>
+   el.addEventListener('change',()=>{
+     selectedSize=el.value;
+     updateProductStockDisplay();
+   })
+ );
+
+ refreshSizeAvailability();
+ updateProductStockDisplay();
 }
 
 function openProduct(id){
@@ -372,13 +421,7 @@ function openProduct(id){
  document.getElementById('data-type').textContent=p.type;
  document.getElementById('data-colors').textContent=p.colors.join(' / ');
  document.getElementById('data-price').textContent='¥'+p.price.toLocaleString();
- updateProductStockDisplay();
- document.getElementById('product-colors').innerHTML=p.colors.map((c,i)=>`<div class="choice"><input type="radio" id="color-${i}" name="product-color" value="${c}" ${i===0?'checked':''}><label for="color-${i}">${c}</label></div>`).join('');
- document.getElementById('product-sizes').innerHTML=p.sizes.map((size,i)=>{ const qty=getStockQty(p, selectedColor, size); const sold=qty<=0; return `<div class="choice${sold?' sold-out':''}"><input type="radio" id="size-${i}" name="product-size" value="${size}" ${!sold && i===0?'checked':''} ${sold?'disabled':''}><label for="size-${i}">${size}</label></div>`; }).join('');
- document.querySelectorAll('input[name="product-color"]').forEach(el=>el.addEventListener('change',()=>{selectedColor=el.value; refreshSizeAvailability(); updateProductStockDisplay();}));
- document.querySelectorAll('input[name="product-size"]').forEach(el=>el.addEventListener('change',()=>{selectedSize=el.value; updateProductStockDisplay();}));
- refreshSizeAvailability();
- updateProductStockDisplay();
+ renderProductVariantChoices();
  go('product');
 }
 
@@ -1371,6 +1414,10 @@ const recoveryReturnHandled = !paymentReturnHandled && handleRecoveryRedirect();
 const initialHash=location.hash.replace('#','');
 if(!paymentReturnHandled && !recoveryReturnHandled && initialHash && document.getElementById(initialHash)) showScreenFromHash();
 if(!paymentReturnHandled && !recoveryReturnHandled) showScreenFromHash();
+if(!paymentReturnHandled && !recoveryReturnHandled && location.hash.indexOf('#product/')===0){
+ const initialProductId=decodeURIComponent(location.hash.slice(9));
+ if(products[initialProductId]) openProduct(initialProductId);
+}
 renderCart();
 renderHistory();
 renderMemberAuth();
