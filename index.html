@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLANK_X042 // LAB / v66</title>
+<title>BLANK_X042 // LAB / v67</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif}
 .app{max-width:430px;margin:auto;min-height:100vh;background:#171717}
@@ -193,7 +193,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div class="section">
 <h2>APP INFORMATION</h2>
 <div class="row"><span>APP</span><span>BLANK_X042 // LAB</span></div>
-<div class="row"><span>BUILD</span><span>v66</span></div>
+<div class="row"><span>BUILD</span><span>v67</span></div>
 </div>
 
 <div class="section">
@@ -266,7 +266,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v66 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v67 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -301,7 +301,7 @@ function renderShop(){
  const box=document.getElementById('shop-products');
  if(!box)return;
  const list=Object.entries(products).filter(([id,p])=>p.status!=='ARCHIVED');
- box.innerHTML=list.map(([id,p])=>`<a class="card product-link" href="#product/${encodeURIComponent(id)}" data-product-id="${id}" role="button" style="display:block;width:100%;text-align:left;background:#242424;color:#eee;padding:8px;text-decoration:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent"><div class="pic">${imageMarkup(p)}</div><div class="name">${id}<br>${p.name}</div><div class="small">${p.category} / ${p.type||'PRODUCT'} / ${p.colors.join(', ')}</div><div class="price">¥${Number(p.price).toLocaleString()}</div></a>`).join('');
+ box.innerHTML=list.map(([id,p])=>`<button type="button" class="card product-link" data-product-id="${escapeHtml(id)}" onclick="openProduct('${String(id).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')" style="display:block;width:100%;text-align:left;background:#242424;color:#eee;padding:8px;text-decoration:none;border:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent"><div class="pic">${imageMarkup(p)}</div><div class="name">${escapeHtml(id)}<br>${escapeHtml(p.name)}</div><div class="small">${escapeHtml(p.category)} / ${escapeHtml(p.type||'PRODUCT')} / ${p.colors.map(escapeHtml).join(', ')}</div><div class="price">¥${Number(p.price).toLocaleString()}</div></button>`).join('');
 }
 
 async function loadProductsFromSupabase(){
@@ -405,12 +405,12 @@ function renderProductVariantChoices(){
  updateProductStockDisplay();
 }
 
-function openProduct(id){
+function openProduct(id, updateHash=true){
  const p = products[id];
  if(!p) return;
  currentProduct = id;
- selectedSize = p.sizes[0];
- selectedColor = p.colors[0];
+ selectedSize = null;
+ selectedColor = p.colors[0] || null;
  document.getElementById('product-code').textContent=id;
  document.getElementById('product-image-box').innerHTML=imageMarkup(p,true);
  document.getElementById('product-name').textContent=p.name;
@@ -422,7 +422,15 @@ function openProduct(id){
  document.getElementById('data-colors').textContent=p.colors.join(' / ');
  document.getElementById('data-price').textContent='¥'+p.price.toLocaleString();
  renderProductVariantChoices();
- go('product');
+ if(updateHash){
+   const nextHash='#product/'+encodeURIComponent(id);
+   if(location.hash!==nextHash) location.hash=nextHash;
+   else showScreenFromHash();
+ } else {
+   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+   const screen=document.getElementById('product');
+   if(screen)screen.classList.add('active');
+ }
 }
 
 function refreshSizeAvailability(){
@@ -1369,7 +1377,7 @@ function showScreenFromHash(){
  let orderDetailId='';
  if(raw.indexOf('product/')===0){
    const productId=decodeURIComponent(raw.slice(8));
-   if(products[productId]) openProduct(productId);
+   if(products[productId]) openProduct(productId,false);
    id='product';
  }else if(raw.indexOf('order-detail/')===0){
    orderDetailId=decodeURIComponent(raw.slice(13));
