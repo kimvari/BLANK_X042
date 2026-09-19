@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLANK_X042 // LAB / v67</title>
+<title>BLANK_X042 // LAB / v69</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif}
 .app{max-width:430px;margin:auto;min-height:100vh;background:#171717}
@@ -150,11 +150,15 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <h2>RESET PASSWORD</h2>
 <div class="small">CHOOSE A NEW PASSWORD FOR YOUR MEMBER ACCOUNT.</div>
 <div class="section">
+<div id="reset-password-start" class="small" style="line-height:1.7">A PASSWORD RESET REQUEST WAS RECEIVED. TAP CONTINUE TO VERIFY THIS LINK.</div>
+<button id="reset-password-continue" onclick="beginRecoveryFromTokenHash()" style="width:100%;margin-top:14px;display:none">CONTINUE PASSWORD RESET →</button>
+<div id="reset-password-form" style="display:none">
 <label style="display:block;margin-bottom:8px;font-size:11px;letter-spacing:1.5px">NEW PASSWORD</label>
 <input id="reset-password-new" type="password" autocomplete="new-password" placeholder="NEW PASSWORD" style="width:100%;box-sizing:border-box;margin-bottom:12px">
 <label style="display:block;margin-bottom:8px;font-size:11px;letter-spacing:1.5px">CONFIRM PASSWORD</label>
 <input id="reset-password-confirm" type="password" autocomplete="new-password" placeholder="CONFIRM PASSWORD" style="width:100%;box-sizing:border-box">
 <button onclick="updatePasswordFromRecovery()" style="width:100%;margin-top:14px">UPDATE PASSWORD →</button>
+</div>
 <div id="reset-password-message" class="small" style="margin-top:12px;line-height:1.7"></div>
 </div>
 </section>
@@ -193,7 +197,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div class="section">
 <h2>APP INFORMATION</h2>
 <div class="row"><span>APP</span><span>BLANK_X042 // LAB</span></div>
-<div class="row"><span>BUILD</span><span>v67</span></div>
+<div class="row"><span>BUILD</span><span>v69</span></div>
 </div>
 
 <div class="section">
@@ -266,7 +270,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v67 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v69 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -1222,11 +1226,92 @@ function renderSettings(){
 }
 
 let recoveryMode=false;
+let recoveryTokenHash='';
+
+function showRecoveryScreen(message=''){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const screen=document.getElementById('reset-password');
+  if(screen)screen.classList.add('active');
+  const msg=document.getElementById('reset-password-message');
+  if(msg)msg.textContent=message;
+  window.scrollTo(0,0);
+}
+
+function prepareRecoveryLanding(tokenHash){
+  recoveryTokenHash=tokenHash||'';
+  recoveryMode=false;
+  memberSession=null;
+  const start=document.getElementById('reset-password-start');
+  const btn=document.getElementById('reset-password-continue');
+  const form=document.getElementById('reset-password-form');
+  if(start)start.textContent='A PASSWORD RESET REQUEST WAS RECEIVED. TAP CONTINUE TO VERIFY THIS LINK.';
+  if(btn)btn.style.display=recoveryTokenHash?'block':'none';
+  if(form)form.style.display='none';
+  showRecoveryScreen('');
+}
+
+async function verifyRecoveryTokenHash(tokenHash){
+  const msg=document.getElementById('reset-password-message');
+  if(!tokenHash){return false;}
+  if(msg)msg.textContent='VERIFYING PASSWORD RESET LINK…';
+  try{
+    const data=await authRequest('/verify',{
+      method:'POST',
+      body:JSON.stringify({token_hash:tokenHash,type:'recovery'})
+    });
+    if(!data?.access_token){
+      throw new Error('PASSWORD RESET SESSION COULD NOT BE CREATED.');
+    }
+    const expiresIn=Number(data.expires_in||3600);
+    const expiresAt=Math.floor(Date.now()/1000)+expiresIn;
+    recoveryMode=true;
+    recoveryTokenHash='';
+    memberSession={...data,expires_in:expiresIn,expires_at:expiresAt};
+    const start=document.getElementById('reset-password-start');
+    const btn=document.getElementById('reset-password-continue');
+    const form=document.getElementById('reset-password-form');
+    if(start)start.textContent='LINK VERIFIED. ENTER YOUR NEW PASSWORD BELOW.';
+    if(btn)btn.style.display='none';
+    if(form)form.style.display='block';
+    showRecoveryScreen('PASSWORD RESET LINK VERIFIED.');
+    return true;
+  }catch(err){
+    console.warn(err);
+    recoveryMode=false;
+    recoveryTokenHash='';
+    memberSession=null;
+    const btn=document.getElementById('reset-password-continue');
+    if(btn)btn.style.display='none';
+    showRecoveryScreen('PASSWORD RESET LINK ERROR: '+(err.message||'INVALID OR EXPIRED LINK')+'. REQUEST A NEW RESET EMAIL.');
+    return true;
+  }
+}
+
+function beginRecoveryFromTokenHash(){
+  if(!recoveryTokenHash){
+    showRecoveryScreen('PASSWORD RESET LINK IS MISSING. REQUEST A NEW RESET EMAIL.');
+    return;
+  }
+  verifyRecoveryTokenHash(recoveryTokenHash);
+}
 
 function handleRecoveryRedirect(){
+  const query=new URLSearchParams(location.search);
+  const tokenHash=query.get('token_hash');
+  if(tokenHash){
+    prepareRecoveryLanding(tokenHash);
+    return true;
+  }
+
   const hash=location.hash.replace(/^#/,'');
   if(!hash) return false;
   const params=new URLSearchParams(hash);
+  const errorCode=params.get('error_code')||'';
+  const errorDescription=params.get('error_description')||'';
+  if(errorCode || errorDescription){
+    showRecoveryScreen('PASSWORD RESET LINK ERROR: '+(errorDescription||errorCode)+'. REQUEST A NEW RESET EMAIL.');
+    return true;
+  }
   if(params.get('type')!=='recovery' || !params.get('access_token')) return false;
   const accessToken=params.get('access_token');
   const refreshToken=params.get('refresh_token')||'';
@@ -1234,48 +1319,14 @@ function handleRecoveryRedirect(){
   const expiresAt=Math.floor(Date.now()/1000)+expiresIn;
   recoveryMode=true;
   memberSession={access_token:accessToken,refresh_token:refreshToken,expires_in:expiresIn,expires_at:expiresAt,user:null};
-  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
-  const screen=document.getElementById('reset-password');
-  if(screen)screen.classList.add('active');
-  window.scrollTo(0,0);
+  const start=document.getElementById('reset-password-start');
+  const btn=document.getElementById('reset-password-continue');
+  const form=document.getElementById('reset-password-form');
+  if(start)start.textContent='LINK VERIFIED. ENTER YOUR NEW PASSWORD BELOW.';
+  if(btn)btn.style.display='none';
+  if(form)form.style.display='block';
+  showRecoveryScreen('');
   return true;
-}
-
-async function updatePasswordFromRecovery(){
-  const msg=document.getElementById('reset-password-message');
-  const password=document.getElementById('reset-password-new')?.value||'';
-  const confirm=document.getElementById('reset-password-confirm')?.value||'';
-  if(!recoveryMode || !memberSession?.access_token){
-    if(msg)msg.textContent='PASSWORD RESET SESSION IS INVALID OR EXPIRED. REQUEST A NEW RESET EMAIL.';
-    return;
-  }
-  if(!password || !confirm){
-    if(msg)msg.textContent='PLEASE ENTER YOUR NEW PASSWORD TWICE.';
-    return;
-  }
-  if(password.length<6){
-    if(msg)msg.textContent='PASSWORD MUST BE AT LEAST 6 CHARACTERS.';
-    return;
-  }
-  if(password!==confirm){
-    if(msg)msg.textContent='PASSWORDS DO NOT MATCH.';
-    return;
-  }
-  if(msg)msg.textContent='UPDATING PASSWORD…';
-  try{
-    await authRequest('/user',{method:'PUT',body:JSON.stringify({password})});
-    recoveryMode=false;
-    setStoredSession(null);
-    if(msg)msg.textContent='PASSWORD UPDATED. PLEASE SIGN IN WITH YOUR NEW PASSWORD.';
-    const newHash='#member';
-    setTimeout(()=>{
-      if(location.hash!==newHash) location.hash=newHash;
-      else showScreenFromHash();
-    },700);
-  }catch(err){
-    console.warn(err);
-    if(msg)msg.textContent='PASSWORD RESET ERROR: '+escapeHtml(err.message||'UNKNOWN ERROR');
-  }
 }
 
 async function sendPasswordResetEmail(){
