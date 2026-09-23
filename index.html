@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BLANK_X042 // LAB / v69</title>
+<title>BLANK_X042 // LAB / v70</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#111;color:#eee;font-family:Arial,Helvetica,sans-serif}
 .app{max-width:430px;margin:auto;min-height:100vh;background:#171717}
@@ -254,7 +254,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 <div class="small" id="payment-result-note" style="margin-top:18px">PLEASE WAIT.</div>
 </div>
 <div class="complete-actions">
-<button id="payment-result-primary" onclick="go('history')">VIEW ORDER HISTORY →</button>
+<button id="payment-result-primary" onclick="openHistoryFromPayment()">VIEW ORDER HISTORY →</button>
 <button onclick="go('shop')">CONTINUE SHOPPING →</button>
 <button onclick="go('home')" style="background:#222;color:#eee;border:1px solid #555">BACK TO HOME →</button>
 </div>
@@ -270,7 +270,7 @@ button{background:#eee;color:#111;border:0;padding:13px 16px;font-weight:bold;le
 </nav>
 </div>
 <script>
-// BLANK_X042 APP BUILD v69 / CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
+// BLANK_X042 APP BUILD v70 / PAYMENT RETURN NAVIGATION FIX + CART QUANTITY CONTROLS + SETTINGS ACCOUNT POLISH + UNIFIED NAVIGATION + STRIPE CHECKOUT + INVENTORY RELEASE
 // Supabase connection is intentionally left as placeholders until production credentials are supplied.
 const SUPABASE_CONFIG = { url: 'https://eofqghfvgijhzqpytnji.supabase.co', anonKey: 'sb_publishable_y21LZ2Jx3giRecLAFU1gAg_H445iLv4', orderFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-order', checkoutFunctionUrl: 'https://eofqghfvgijhzqpytnji.supabase.co/functions/v1/create-checkout-session' };
 // v10: production order writes are designed to go through a server-side Edge Function.
@@ -1419,6 +1419,21 @@ function handlePaymentReturn(){
   document.querySelectorAll('.nav a,.nav button').forEach(x => x.classList.remove('active'));
   window.scrollTo(0,0);
   return true;
+}
+
+function openHistoryFromPayment(){
+  // Leave the Stripe return state before entering account history.
+  // This prevents the payment-result handler from being re-entered on reload/navigation.
+  const cleanUrl = location.pathname + '#history';
+  history.replaceState(null, '', cleanUrl);
+  document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
+  const historyScreen = document.getElementById('history');
+  if(historyScreen) historyScreen.classList.add('active');
+  document.querySelectorAll('.nav a,.nav button').forEach(x => x.classList.remove('active'));
+  const nav = document.getElementById('n-history');
+  if(nav) nav.classList.add('active');
+  loadAccountHistory();
+  window.scrollTo(0,0);
 }
 
 function showScreenFromHash(){
