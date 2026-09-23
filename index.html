@@ -1381,6 +1381,10 @@ function handlePaymentReturn(){
 
   if(payment !== 'success' && payment !== 'cancel') return false;
 
+  // Consume the Stripe return query immediately. This prevents an old
+  // payment result from being re-triggered after hash navigation or reload.
+  history.replaceState(null, '', location.pathname + '#payment-result');
+
   const screen = document.getElementById('payment-result');
   if(!screen) return false;
 
